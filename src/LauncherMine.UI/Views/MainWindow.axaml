@@ -1,0 +1,392 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:LauncherMine.UI.ViewModels"
+        xmlns:models="using:LauncherMine.Core.Models"
+        x:Class="LauncherMine.UI.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="Exys Launcher - TestAI"
+        Width="980" Height="680"
+        MinWidth="920" MinHeight="620"
+        WindowStartupLocation="CenterScreen"
+        Background="#0D0E15">
+
+    <Window.Styles>
+        <Style Selector="TextBlock">
+            <Setter Property="FontFamily" Value="Inter, Segoe UI, -apple-system, sans-serif" />
+            <Setter Property="Foreground" Value="#F8FAFC" />
+        </Style>
+
+        <!-- Botões Gerais -->
+        <Style Selector="Button">
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.15" />
+                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.15" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Button:pointerover">
+            <Setter Property="RenderTransform" Value="scale(1.02)" />
+        </Style>
+
+        <!-- Abas Segmentadas do Topo -->
+        <Style Selector="RadioButton.navtab">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#94A3B8" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Padding" Value="14, 8" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Background="{TemplateBinding Background}" 
+                            CornerRadius="{TemplateBinding CornerRadius}" 
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter Content="{TemplateBinding Content}" 
+                                          Foreground="{TemplateBinding Foreground}" 
+                                          HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+        <Style Selector="RadioButton.navtab:checked">
+            <Setter Property="Background" Value="#1E2337" />
+            <Setter Property="Foreground" Value="#38BDF8" />
+        </Style>
+        <Style Selector="RadioButton.navtab:pointerover">
+            <Setter Property="Foreground" Value="#F8FAFC" />
+        </Style>
+    </Window.Styles>
+
+    <Grid RowDefinitions="70, *, 80">
+        
+        <!-- ================= 1. CABEÇALHO MODERNO ================= -->
+        <Border Grid.Row="0" Background="#131520" BorderBrush="#1E2235" BorderThickness="0,0,0,1" Padding="24, 0">
+            <Grid ColumnDefinitions="Auto, *, Auto">
+                
+                <!-- Logo & Nome -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                    <Border Width="38" Height="38" CornerRadius="10" Background="#1E2438" BorderBrush="#38BDF8" BorderThickness="1.5">
+                        <TextBlock Text="⛏" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#38BDF8" />
+                    </Border>
+                    <StackPanel VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="Exys Launcher" FontSize="18" FontWeight="Black" Foreground="#F8FAFC" />
+                            <Border Background="#10B981" CornerRadius="4" Padding="6, 2" VerticalAlignment="Center">
+                                <TextBlock Text="TestAI" FontSize="10" FontWeight="Bold" Foreground="#0B0D14" />
+                            </Border>
+                        </StackPanel>
+                        <TextBlock Text="Gerenciador e Motor Multiplataforma" FontSize="11" Foreground="#64748B" />
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- 4 Abas de Navegação -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <RadioButton Classes="navtab" Content="🎮  Jogar" 
+                                 IsChecked="{Binding SelectedTabIndex, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=0}" 
+                                 Click="OnTabJogarClicked" />
+                    <RadioButton Classes="navtab" Content="📚  Instâncias" 
+                                 IsChecked="{Binding SelectedTabIndex, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=1}" 
+                                 Click="OnTabInstanciasClicked" />
+                    <RadioButton Classes="navtab" Content="⚡  Loader &amp; JVM" 
+                                 IsChecked="{Binding SelectedTabIndex, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=2}" 
+                                 Click="OnTabJvmClicked" />
+                    <RadioButton Classes="navtab" Content="📦  Importar ZIP" 
+                                 IsChecked="{Binding SelectedTabIndex, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=3}" 
+                                 Click="OnTabImportClicked" />
+                </StackPanel>
+
+                <!-- Perfil do Jogador -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                    <Border Background="#1A1D2D" BorderBrush="#262D44" BorderThickness="1" CornerRadius="8" Padding="10, 4">
+                        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                            <Border Width="24" Height="24" CornerRadius="12" Background="#38BDF8">
+                                <TextBlock Text="👤" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+                            <ComboBox ItemsSource="{Binding Accounts}"
+                                      SelectedItem="{Binding SelectedAccount}"
+                                      MinWidth="140" Background="Transparent" BorderThickness="0" Foreground="#F8FAFC" FontWeight="Bold">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <TextBlock Text="{Binding Username}" FontWeight="Bold" Foreground="#F8FAFC" />
+                                            <TextBlock Text="[MS]" Foreground="#38BDF8" FontSize="11" 
+                                                       IsVisible="{Binding Type, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static models:AccountType.Microsoft}}" />
+                                            <TextBlock Text="[Offline]" Foreground="#94A3B8" FontSize="11" 
+                                                       IsVisible="{Binding Type, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static models:AccountType.Offline}}" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </StackPanel>
+                    </Border>
+
+                    <Button Content="+" ToolTip.Tip="Nova Conta" Click="OnAddAccountClicked"
+                            Width="36" Height="36" Background="#1E2438" BorderBrush="#2E3754" Foreground="#38BDF8" FontWeight="Bold" FontSize="18" />
+                </StackPanel>
+
+            </Grid>
+        </Border>
+
+        <!-- ================= 2. ÁREA CENTRAL COM SCROLL COMPLETO E FLUIDO ================= -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="30, 24, 30, 40">
+            <StackPanel Spacing="20" MaxWidth="880" HorizontalAlignment="Center">
+                
+                <!-- ========== ABA 0: JOGAR (PAINEL PRINCIPAL) ========== -->
+                <StackPanel Spacing="18" IsVisible="{Binding SelectedTabIndex, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=0}">
+                    
+                    <!-- Cartão Heroico da Instância Atual -->
+                    <Border CornerRadius="14" BorderBrush="#22283E" BorderThickness="1" Padding="26">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                                <GradientStop Color="#161928" Offset="0.0" />
+                                <GradientStop Color="#10121E" Offset="1.0" />
+                            </LinearGradientBrush>
+                        </Border.Background>
+
+                        <StackPanel Spacing="14">
+                            <Grid ColumnDefinitions="*, Auto">
+                                <StackPanel Grid.Column="0" Spacing="4">
+                                    <TextBlock Text="{Binding SelectedInstance.Name, FallbackValue='NeoForge 1.21.1 Pack'}" 
+                                               FontSize="24" FontWeight="Black" Foreground="#F8FAFC" />
+                                    <TextBlock Text="Instância isolada (Prism-like): mods, saves e configs independentes." FontSize="13" Foreground="#94A3B8" />
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                    <Border Background="#162E25" BorderBrush="#10B981" BorderThickness="1" CornerRadius="6" Padding="8, 3">
+                                        <TextBlock Text="ISOLADA" FontSize="10" FontWeight="Bold" Foreground="#34D399" />
+                                    </Border>
+                                    <Border Background="#1E2438" BorderBrush="#38BDF8" BorderThickness="1" CornerRadius="6" Padding="8, 3">
+                                        <TextBlock Text="ANTI-TAMPERING" FontSize="10" FontWeight="Bold" Foreground="#38BDF8" />
+                                    </Border>
+                                </StackPanel>
+                            </Grid>
+
+                            <Border Height="1" Background="#22283E" Margin="0, 2" />
+
+                            <!-- 3 Chips Técnicos -->
+                            <Grid ColumnDefinitions="*, *, *">
+                                <Border Grid.Column="0" Background="#141724" BorderBrush="#22283E" BorderThickness="1" CornerRadius="8" Padding="12, 10" Margin="0,0,6,0">
+                                    <StackPanel HorizontalAlignment="Center" Spacing="2">
+                                        <TextBlock Text="VERSÃO" FontSize="10" FontWeight="Bold" Foreground="#64748B" HorizontalAlignment="Center" />
+                                        <TextBlock Text="{Binding SelectedInstance.GameVersion, FallbackValue='1.21.1'}" FontSize="14" FontWeight="Black" Foreground="#F8FAFC" HorizontalAlignment="Center" />
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Grid.Column="1" Background="#141724" BorderBrush="#22283E" BorderThickness="1" CornerRadius="8" Padding="12, 10" Margin="6,0,6,0">
+                                    <StackPanel HorizontalAlignment="Center" Spacing="2">
+                                        <TextBlock Text="MOD LOADER" FontSize="10" FontWeight="Bold" Foreground="#64748B" HorizontalAlignment="Center" />
+                                        <TextBlock Text="{Binding SelectedInstance.LoaderType, StringFormat='{}{0}'}" FontSize="14" FontWeight="Black" Foreground="#10B981" HorizontalAlignment="Center" />
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Grid.Column="2" Background="#141724" BorderBrush="#22283E" BorderThickness="1" CornerRadius="8" Padding="12, 10" Margin="6,0,0,0">
+                                    <StackPanel HorizontalAlignment="Center" Spacing="2">
+                                        <TextBlock Text="RUNTIME JAVA" FontSize="10" FontWeight="Bold" Foreground="#64748B" HorizontalAlignment="Center" />
+                                        <TextBlock Text="Java 21 (Temurin 64-Bit)" FontSize="13" FontWeight="Bold" Foreground="#38BDF8" HorizontalAlignment="Center" />
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Cartão de Memória RAM com Detecção de Hardware -->
+                    <Border Background="#141724" CornerRadius="14" BorderBrush="#22283E" BorderThickness="1" Padding="22">
+                        <StackPanel Spacing="12">
+                            <Grid ColumnDefinitions="*, Auto">
+                                <StackPanel Grid.Column="0" Spacing="2">
+                                    <TextBlock Text="Alocação de Memória RAM" FontSize="15" FontWeight="Bold" Foreground="#F8FAFC" />
+                                    <TextBlock Text="{Binding RamInfoText}" FontSize="12" Foreground="#38BDF8" FontWeight="SemiBold" />
+                                </StackPanel>
+                                <Border Grid.Column="1" Background="#1E2337" CornerRadius="8" Padding="14, 6" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding RamAllocationMb, StringFormat='{}{0} MB'}" FontWeight="Black" Foreground="#10B981" FontSize="15" />
+                                </Border>
+                            </Grid>
+
+                            <!-- Slider Limitado com Base na RAM Física Real do Usuário -->
+                            <Slider Minimum="{Binding MinRamSliderMb}" Maximum="{Binding MaxRamSliderMb}" Value="{Binding RamAllocationMb}" 
+                                    LargeChange="1024" SmallChange="512" IsSnapToTickEnabled="True" TickFrequency="1024" Margin="0, 4" />
+
+                            <Grid ColumnDefinitions="Auto, *, Auto">
+                                <TextBlock Grid.Column="0" Text="1 GB (Mínimo)" FontSize="11" Foreground="#64748B" />
+                                <TextBlock Grid.Column="1" Text="6 GB - 8 GB (Ideal para 300+ Mods)" FontSize="11" Foreground="#10B981" HorizontalAlignment="Center" FontWeight="Bold" />
+                                <TextBlock Grid.Column="2" Text="{Binding MaxRamSliderMb, StringFormat='{}{0} MB (Seguro)'}" FontSize="11" Foreground="#64748B" />
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Cartão de Garbage Collector -->
+                    <Border Background="#141724" CornerRadius="14" BorderBrush="#22283E" BorderThickness="1" Padding="20">
+                        <Grid ColumnDefinitions="*, Auto">
+                            <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
+                                <TextBlock Text="Otimização de Garbage Collector (GC)" FontSize="15" FontWeight="Bold" Foreground="#F8FAFC" />
+                                <TextBlock Text="Configurações automáticas para eliminar micro-travamentos e travadas de FPS." FontSize="12" Foreground="#64748B" />
+                            </StackPanel>
+                            <ComboBox Grid.Column="1" ItemsSource="{Binding JvmPresetNames}" 
+                                      SelectedItem="{Binding SelectedJvmPreset}"
+                                      Width="340" Height="40" Background="#1E2337" Foreground="#F8FAFC" CornerRadius="8" VerticalAlignment="Center" />
+                        </Grid>
+                    </Border>
+                </StackPanel>
+
+                <!-- ========== ABA 1: GERENCIAR INSTÂNCIAS (PRISM-LIKE COMPLETO) ========== -->
+                <StackPanel Spacing="16" IsVisible="{Binding SelectedTabIndex, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=1}">
+                    <Grid ColumnDefinitions="*, Auto">
+                        <StackPanel Grid.Column="0" Spacing="2">
+                            <TextBlock Text="Gerenciador de Instâncias Isoladas" FontSize="18" FontWeight="Black" Foreground="#F8FAFC" />
+                            <TextBlock Text="Cada instância possui mods, saves e configurações independentes." FontSize="12" Foreground="#64748B" />
+                        </StackPanel>
+                        <Button Grid.Column="1" Content="+ Nova Instância" Click="OnCreateInstanceClicked"
+                                Background="#10B981" Foreground="#0B0D14" FontWeight="Bold" Padding="16, 8" />
+                    </Grid>
+
+                    <!-- Lista de Instâncias Criadas -->
+                    <ItemsControl ItemsSource="{Binding Instances}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="#141724" BorderBrush="#22283E" BorderThickness="1" CornerRadius="10" Padding="18" Margin="0, 0, 0, 10">
+                                    <Grid ColumnDefinitions="*, Auto, Auto, Auto">
+                                        <StackPanel Grid.Column="0" Spacing="4" VerticalAlignment="Center">
+                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                                <TextBlock Text="{Binding Name}" FontSize="16" FontWeight="Bold" Foreground="#F8FAFC" />
+                                                <Border Background="#1E2438" CornerRadius="4" Padding="6, 2">
+                                                    <TextBlock Text="{Binding GameVersion}" FontSize="11" Foreground="#38BDF8" FontWeight="Bold" />
+                                                </Border>
+                                                <Border Background="#162E25" CornerRadius="4" Padding="6, 2">
+                                                    <TextBlock Text="{Binding LoaderType}" FontSize="11" Foreground="#34D399" FontWeight="Bold" />
+                                                </Border>
+                                            </StackPanel>
+                                            <TextBlock Text="{Binding Id, StringFormat='ID: {0}'}" FontSize="11" Foreground="#64748B" />
+                                        </StackPanel>
+
+                                        <!-- Botão Abrir Pasta da Instância -->
+                                        <Button Grid.Column="1" Content="📁 Abrir Pasta" 
+                                                Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenInstanceFolderCommand}"
+                                                CommandParameter="{Binding}"
+                                                Background="#1E2438" Foreground="#E2E8F0" Padding="12, 6" Margin="0, 0, 8, 0" />
+
+                                        <!-- Botão Selecionar para Jogar -->
+                                        <Button Grid.Column="2" Content="Selecionar" 
+                                                Click="OnSelectInstanceClicked"
+                                                Background="#10B981" Foreground="#0B0D14" FontWeight="Bold" Padding="14, 6" Margin="0, 0, 8, 0" />
+
+                                        <!-- Botão Excluir -->
+                                        <Button Grid.Column="3" Content="🗑" 
+                                                Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).DeleteInstanceCommand}"
+                                                CommandParameter="{Binding}"
+                                                Background="#3E1A1A" Foreground="#F87171" Padding="10, 6" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+
+                <!-- ========== ABA 2: OPÇÕES DE MOD LOADER & JVM ========== -->
+                <StackPanel Spacing="18" IsVisible="{Binding SelectedTabIndex, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=2}">
+                    <Border Background="#141724" CornerRadius="14" BorderBrush="#22283E" BorderThickness="1" Padding="26">
+                        <StackPanel Spacing="16">
+                            <TextBlock Text="Configurações de Execução e Mod Loaders" FontSize="17" FontWeight="Bold" Foreground="#F8FAFC" />
+
+                            <Grid ColumnDefinitions="*, *" Margin="0, 4">
+                                <StackPanel Grid.Column="0" Margin="0, 0, 12, 0" Spacing="6">
+                                    <TextBlock Text="Mod Loader Escolhido:" FontWeight="Bold" Foreground="#94A3B8" FontSize="13" />
+                                    <ComboBox ItemsSource="{Binding AvailableLoaders}" SelectedItem="{Binding SelectedLoader}"
+                                              HorizontalAlignment="Stretch" Height="40" Background="#1E2337" Foreground="#F8FAFC" CornerRadius="8" />
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="1" Margin="12, 0, 0, 0" Spacing="6">
+                                    <TextBlock Text="Versão do Loader:" FontWeight="Bold" Foreground="#94A3B8" FontSize="13" />
+                                    <ComboBox ItemsSource="{Binding AvailableLoaderVersions}" SelectedItem="{Binding SelectedLoaderVersion}"
+                                              HorizontalAlignment="Stretch" Height="40" Background="#1E2337" Foreground="#F8FAFC" CornerRadius="8" />
+                                </StackPanel>
+                            </Grid>
+
+                            <TextBlock Text="Argumentos Personalizados da JVM (Flags de Performance):" FontWeight="Bold" Foreground="#94A3B8" FontSize="13" />
+                            <TextBox Text="{Binding CustomJvmArgsText}" Height="80" AcceptsReturn="True" TextWrapping="Wrap"
+                                     Background="#0B0D14" BorderBrush="#22283E" Foreground="#38BDF8" 
+                                     FontFamily="Cascadia Code, Consolas" FontSize="12" CornerRadius="6" />
+
+                            <CheckBox IsChecked="{Binding CloseLauncherOnLaunch}" Foreground="#F8FAFC">
+                                <StackPanel Orientation="Vertical" Spacing="2">
+                                    <TextBlock Text="Fechar launcher ao abrir o jogo (Economia de 100% de RAM)" FontWeight="Bold" />
+                                    <TextBlock Text="Encerra o processo do launcher após o Java iniciar para deixar toda a memória do PC livre para os mods." FontSize="11" Foreground="#64748B" />
+                                </StackPanel>
+                            </CheckBox>
+
+                            <CheckBox IsChecked="{Binding OpenConsoleOnLaunch}" Foreground="#F8FAFC">
+                                <TextBlock Text="Exibir console de logs em tempo real para depuração de erros" FontWeight="Bold" />
+                            </CheckBox>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- ========== ABA 3: IMPORTAR MODPACK ZIP ========== -->
+                <StackPanel Spacing="18" IsVisible="{Binding SelectedTabIndex, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=3}">
+                    <Border Background="#141724" CornerRadius="14" BorderBrush="#22283E" BorderThickness="1" Padding="32">
+                        <StackPanel Spacing="18" HorizontalAlignment="Center" MaxWidth="620">
+                            
+                            <Border Width="64" Height="64" Background="#1E2337" BorderBrush="#38BDF8" BorderThickness="2" CornerRadius="32" HorizontalAlignment="Center">
+                                <TextBlock Text="📦" FontSize="30" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+
+                            <TextBlock Text="Importar Modpack (.ZIP)" FontSize="22" FontWeight="Black" Foreground="#F8FAFC" HorizontalAlignment="Center" />
+                            <TextBlock Text="Selecione o arquivo .zip exportado do CurseForge ou Modrinth. Todos os mods, arquivos de configuração e scripts serão extraídos com isolamento e integridade verificada." 
+                                       FontSize="13" Foreground="#94A3B8" TextAlignment="Center" TextWrapping="Wrap" />
+
+                            <Grid ColumnDefinitions="*, Auto" Margin="0, 8">
+                                <TextBox Grid.Column="0" Text="{Binding ImportZipPath}" Watermark="Caminho do arquivo de modpack (.zip)..."
+                                         Background="#0B0D14" BorderBrush="#22283E" Foreground="#F8FAFC" Height="42" CornerRadius="6, 0, 0, 6" VerticalContentAlignment="Center" />
+                                <Button Grid.Column="1" Content="Procurar .ZIP..." Click="OnBrowseZipClicked"
+                                        Background="#1E2438" BorderBrush="#22283E" Foreground="#38BDF8" Height="42" CornerRadius="0, 6, 6, 0" Padding="18, 0" />
+                            </Grid>
+
+                            <Button Content="Instalar e Criar Instância" Click="OnConfirmImportClicked"
+                                    HorizontalAlignment="Center" Width="260" Height="46"
+                                    Background="#10B981" Foreground="#0B0D14" FontWeight="Bold" FontSize="14" />
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- ================= 3. RODAPÉ FIXO COM BARRA DE STATUS E BOTÃO JOGAR ================= -->
+        <Border Grid.Row="2" Background="#131520" BorderBrush="#1E2235" BorderThickness="0,1,0,0" Padding="28, 14">
+            <Grid ColumnDefinitions="*, Auto">
+                
+                <!-- Status & Barra de Progresso -->
+                <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="8" Margin="0, 0, 24, 0">
+                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                        <Border Width="8" Height="8" CornerRadius="4" Background="#10B981" VerticalAlignment="Center" />
+                        <TextBlock Text="{Binding StatusMessage}" Foreground="#F8FAFC" FontSize="13" FontWeight="Bold" VerticalAlignment="Center" />
+                    </StackPanel>
+                    
+                    <ProgressBar Height="6" Maximum="100" Value="{Binding ProgressValue}" 
+                                 IsVisible="{Binding IsProgressVisible}" Foreground="#10B981" Background="#1E2337" CornerRadius="3" />
+                </StackPanel>
+
+                <!-- Botão JOGAR -->
+                <Button Grid.Column="1" 
+                        Command="{Binding PlayCommand}" 
+                        IsEnabled="{Binding !IsBusy}"
+                        Width="220" Height="50"
+                        Background="#10B981"
+                        CornerRadius="10"
+                        FontWeight="Black" FontSize="16"
+                        VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <TextBlock Text="▶" FontSize="16" Foreground="#0B0D14" VerticalAlignment="Center" />
+                        <TextBlock Text="JOGAR" Foreground="#0B0D14" FontWeight="Black" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+
+            </Grid>
+        </Border>
+
+    </Grid>
+</Window>

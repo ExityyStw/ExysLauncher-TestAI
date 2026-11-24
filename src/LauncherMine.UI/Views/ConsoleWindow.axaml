@@ -1,0 +1,27 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="LauncherMine.UI.Views.ConsoleWindow"
+        Title="Console de Diagnóstico de Logs"
+        Width="820" Height="500"
+        WindowStartupLocation="CenterScreen"
+        Background="#0F111A">
+
+    <Grid RowDefinitions="*, 40">
+        <Border Grid.Row="0" BorderBrush="#1E2235" BorderThickness="0,0,0,1">
+            <TextBox Name="LogTextBox"
+                     IsReadOnly="True"
+                     FontFamily="Cascadia Code, Consolas, Courier New"
+                     FontSize="12"
+                     Foreground="#38BDF8"
+                     Background="#0A0B10"
+                     BorderThickness="0"
+                     AcceptsReturn="True"
+                     TextWrapping="Wrap" />
+        </Border>
+
+        <Border Grid.Row="1" Background="#131520" Padding="16, 6">
+            <TextBlock Text="✦ Monitorando saída padrão (stdout / stderr) do Java do Minecraft em tempo real..." 
+                       FontSize="11" Foreground="#64748B" FontWeight="SemiBold" VerticalAlignment="Center" />
+        </Border>
+    </Grid>
+</Window>

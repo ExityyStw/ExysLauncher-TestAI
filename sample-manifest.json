@@ -1,0 +1,10 @@
+{
+  "modpackName": "LauncherMine 1.21.1",
+  "version": "1.0.0",
+  "gameVersion": "1.21.1",
+  "loader": {
+    "type": "vanilla",
+    "version": ""
+  },
+  "files": []
+}
