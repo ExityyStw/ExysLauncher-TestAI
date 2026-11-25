@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("LauncherMine.UI")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+dee8abdc8fc5b9ebd3e8c7ae9927d09d0f956794")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a3e1b13c9f4985b8ba26331bdfcfff3f174eea8e")]
 [assembly: System.Reflection.AssemblyProductAttribute("LauncherMine.UI")]
 [assembly: System.Reflection.AssemblyTitleAttribute("LauncherMine.UI")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
