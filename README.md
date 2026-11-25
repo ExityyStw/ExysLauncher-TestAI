@@ -1,4 +1,8 @@
-## Exys Launcher - TestAI ⛏️
+# Exys Launcher - TestAI ⛏️
+
+![Plataforma](https://img.shields.io/badge/plataforma-Windows%20%7C%20Linux-blue)
+![.NET](https://img.shields.io/badge/.NET-8.0-512BD4)
+![Interface](https://img.shields.io/badge/interface-Avalonia-purple)
 
 Um launcher de Minecraft moderno, ultra-leve, seguro e estritamente **multiplataforma (Windows e Linux)**, projetado especificamente para modpacks modernos e pesados (ex: **NeoForge 1.21.1 com 300+ mods**).
 
@@ -7,9 +11,21 @@ Inspirado em:
 - **SKlauncher**: Alternador rápido de contas com suporte tanto a contas Microsoft oficiais quanto a contas offline com validação estrita anti-injeção.
 - **Horizon Launcher (Rust)**: Eficiência de recursos e opção de encerramento automático pós-inicialização do Java (liberando 100% da memória RAM para o jogo).
 
----
+## — Funcionalidades. 🖥️
 
-## 🛡️ Pilares de Segurança da Informação
+1. **Suporte Completo ao NeoForge 1.21.1 & Fabric:**
+   - Seleção da versão do loader (`21.1.88`, `21.1.84`, etc.).
+   - Resolução automática de assets oficiais e bibliotecas da Mojang na primeira inicialização.
+2. **Importador de Modpacks (.ZIP):**
+   - Importação direta de pacotes exportados do **CurseForge** e **Modrinth**.
+   - Extração segura de pastas de `overrides` (`mods`, `config`, `scripts`, `kubejs`, `resourcepacks`) para instâncias isoladas.
+3. **Perfis Profissionais de Garbage Collection (Java 21):**
+   - **Generational ZGC (Java 21+)**: Pausas de garbage collection ultracurtas (< 1ms), ideais para processadores modernos.
+   - **G1GC Ultra-Otimizado**: Configurado para eliminar micro-travamentos (*stuttering*) e picos de congelamento em pacotes com 300+ mods.
+4. **Interface Estilo Papel & Tinta (Hand-Drawn / Papercraft):**
+   - Design limpo e agradável, sem cara de IA genérica. Textura de papel marfim, tipografia nítida e alinhamento milimétrico.
+
+## — Pilares de Segurança da Informação. 🛡️
 
 | Vetor de Ameaça | Mitigação Implementada |
 | :--- | :--- |
@@ -19,25 +35,14 @@ Inspirado em:
 | **Injeção de Comandos (CWE-78)** | Execução do runtime Java montada exclusivamente através de listas paramétricas nativas (`ProcessStartInfo.ArgumentList`), sem passar por shells (`cmd.exe` ou `/bin/sh`). |
 | **Injeção em Nomes de Usuários Offline** | Validação estrita por Expressão Regular (`^[a-zA-Z0-9_]{3,16}$`) e geração de **UUID v3** compatível byte-a-byte com o padrão histórico da Mojang. |
 
----
+## — Tecnologias Aplicadas. 👾
 
-## ⚡ Recursos em Destaque
+- **C# e .NET 8:** linguagem e plataforma da aplicação.
+- **Avalonia UI:** interface gráfica multiplataforma.
+- **CommunityToolkit.Mvvm:** implementação da arquitetura MVVM.
+- **CmlLib.Core:** integração com o lançamento do Minecraft.
 
-1. **Suporte Completo ao NeoForge 1.21.1 & Fabric:**
-   * Seleção da versão do loader (`21.1.88`, `21.1.84`, etc.).
-   * Resolução automática de assets oficiais e bibliotecas da Mojang na primeira inicialização.
-2. **Importador de Modpacks (.ZIP):**
-   * Importação direta de pacotes exportados do **CurseForge** e **Modrinth**.
-   * Extração segura de pastas de `overrides` (`mods`, `config`, `scripts`, `kubejs`, `resourcepacks`) para instâncias isoladas.
-3. **Perfis Profissionais de Garbage Collection (Java 21):**
-   * **Generational ZGC (Java 21+)**: Pausas de garbage collection ultracurtas (< 1ms), ideais para processadores modernos.
-   * **G1GC Ultra-Otimizado**: Configurado para eliminar micro-travamentos (*stuttering*) e picos de congelamento em pacotes com 300+ mods.
-4. **Interface Estilo Papel & Tinta (Hand-Drawn / Papercraft):**
-   * Design limpo e agradável, sem cara de IA genérica. Textura de papel marfim, tipografia nítida e alinhamento milimétrico.
-
----
-
-## 📁 Estrutura de Diretórios
+## — Estrutura de Diretórios. 📁
 
 ```text
 LauncherMine/ (ou ExysLauncher-TestAI/)
@@ -53,38 +58,32 @@ LauncherMine/ (ou ExysLauncher-TestAI/)
     │   ├── Models/                  # Modelos de dados, presets JVM e metadados
     │   ├── Security/                # DPAPI, AES-GCM Linux, Anti-Path Traversal
     │   └── Updater/                 # Custom Updater SHA-256 e Importador de ZIPs
-    │
     └── LauncherMine.UI/             # Interface gráfica em Avalonia UI
         ├── Views/                   # Telas XAML (MainWindow, AddAccount, Console)
         └── ViewModels/              # Lógica MVVM reativa com CommunityToolkit
 ```
 
----
+## — Como Usar? 🌟
 
-## 🚀 Como Iniciar
+1. **Executável direto:** dê dois cliques em `ExysLauncher-TestAI.exe`. Ele é 100% independente e não exige que você instale nada no computador.
+2. **Script com auto-instalação (`run.bat`):** dê dois cliques no arquivo. Caso o computador não tenha o .NET 8 instalado, o script baixa e configura as ferramentas oficiais da Microsoft em segundo plano e abre o launcher.
+3. **Linux (`run.sh`):** execute os comandos:
 
-### 1. Maneira Mais Fácil: Executável Direto
-Basta dar **dois cliques em `ExysLauncher-TestAI.exe`**. Ele é 100% independente e não exige que você instale nada no computador.
+   ```bash
+   chmod +x run.sh
+   ./run.sh
+   ```
 
-### 2. Pelo Script com Auto-Instalação: `run.bat`
-* Dê dois cliques em **`run.bat`**. Caso o computador não tenha o .NET 8 instalado, o script baixa e configura as ferramentas oficiais da Microsoft sozinho em segundo plano e abre o launcher.
-
-### 3. No Linux: `run.sh`
-```bash
-chmod +x run.sh
-./run.sh
-```
-
----
-
-## 🔨 Como Compilar e Distribuir
+## — Como Compilar e Distribuir? 🔨
 
 Para gerar um novo executável único (*Single-File*):
 
 ```powershell
-# Publicação para Windows (Gera o binário único em dist/windows/):
+# Publicação para Windows (gera o binário único em dist/windows/):
 dotnet publish src/LauncherMine.UI/LauncherMine.UI.csproj -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o ./dist/windows
 
-# Publicação para Linux (Gera o binário nativo em dist/linux/):
+# Publicação para Linux (gera o binário nativo em dist/linux/):
 dotnet publish src/LauncherMine.UI/LauncherMine.UI.csproj -c Release -r linux-x64 --self-contained -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o ./dist/linux
 ```
+
+---
