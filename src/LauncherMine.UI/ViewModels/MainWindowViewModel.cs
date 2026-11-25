@@ -326,7 +326,6 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         }
     }
 
-    [RelayCommand]
     public async Task CreateNewInstanceAsync(string name, string gameVersion, string loaderType, string? loaderVersion)
     {
         var newInst = await _instanceManager.CreateInstanceAsync(name, gameVersion, loaderType, loaderVersion);
