@@ -1,0 +1,23 @@
+# Environment files and local secrets
+.env
+.env.*
+!.env.example
+
+# .NET build outputs
+**/bin/
+**/obj/
+.vs/
+TestResults/
+artifacts/
+dist/
+
+# Compiled artifacts
+*.exe
+*.dll
+*.pdb
+*.cache
+
+# Local IDE and log files
+*.user
+*.suo
+*.log

@@ -35,6 +35,8 @@ Inspirado em:
 | **Injeção de Comandos (CWE-78)** | Execução do runtime Java montada exclusivamente através de listas paramétricas nativas (`ProcessStartInfo.ArgumentList`), sem passar por shells (`cmd.exe` ou `/bin/sh`). |
 | **Injeção em Nomes de Usuários Offline** | Validação estrita por Expressão Regular (`^[a-zA-Z0-9_]{3,16}$`) e geração de **UUID v3** compatível byte-a-byte com o padrão histórico da Mojang. |
 
+O projeto não carrega configurações de arquivos `.env` e não precisa de segredos locais para compilar. O `ClientId` Microsoft usado no fluxo OAuth é público; tokens de conta são armazenados no cofre seguro do sistema operacional. Arquivos `.env` locais são ignorados pelo Git.
+
 ## — Tecnologias Aplicadas. 👾
 
 - **C# e .NET 8:** linguagem e plataforma da aplicação.
