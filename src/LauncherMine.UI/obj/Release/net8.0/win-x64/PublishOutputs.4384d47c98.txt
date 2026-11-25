@@ -1,3 +1,0 @@
-c:\Users\igor.cardoso\Documents\LauncherMine\dist\windows\LauncherMine.UI.pdb
-c:\Users\igor.cardoso\Documents\LauncherMine\dist\windows\LauncherMine.Core.pdb
-c:\Users\igor.cardoso\Documents\LauncherMine\dist\windows\LauncherMine.UI.exe
