@@ -214,4 +214,16 @@ public partial class MainWindow : Window
             app.RequestedThemeVariant = currentTheme == ThemeVariant.Light ? ThemeVariant.Dark : ThemeVariant.Light;
         }
     }
+
+    private void OnShowInstancesClicked(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel vm)
+            vm.SelectedTabIndex = 1;
+    }
+
+    private void OnShowSettingsClicked(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel vm)
+            vm.SelectedTabIndex = 2;
+    }
 }
