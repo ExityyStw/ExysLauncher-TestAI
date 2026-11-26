@@ -5,53 +5,53 @@
         Width="460" Height="420"
         WindowStartupLocation="CenterOwner"
         CanResize="False"
-        Background="#0F111A">
+        Background="{DynamicResource WindowBgBrush}">
 
     <Border Padding="28">
         <StackPanel Spacing="18">
             <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                <Border Width="36" Height="36" CornerRadius="8" Background="#161824" BorderBrush="#252A3D" BorderThickness="1">
-                    <TextBlock Text="✦" FontSize="18" Foreground="#10B981" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                <Border Width="36" Height="36" CornerRadius="8" Background="{DynamicResource SubCardBgBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1">
+                    <TextBlock Text="✦" FontSize="18" Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
                 </Border>
                 <StackPanel VerticalAlignment="Center">
-                    <TextBlock Text="Nova Instância Isolada" FontSize="18" FontWeight="ExtraBold" Foreground="#F8FAFC" />
-                    <TextBlock Text="Criação de ambiente isolado estilo Prism Launcher" FontSize="11" Foreground="#94A3B8" />
+                    <TextBlock Text="Nova Instância Isolada" FontSize="18" FontWeight="ExtraBold" Foreground="{DynamicResource TextPrimaryBrush}" />
+                    <TextBlock Text="Criação de ambiente isolado estilo Prism Launcher" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" />
                 </StackPanel>
             </StackPanel>
 
             <!-- Nome da Instância -->
             <StackPanel Spacing="6">
-                <TextBlock Text="Nome da Instância:" FontWeight="SemiBold" Foreground="#E2E8F0" FontSize="13" />
+                <TextBlock Text="Nome da Instância:" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13" />
                 <TextBox Name="InstanceNameBox" Text="NeoForge 1.21.1 Pack" 
-                         Background="#161824" BorderBrush="#252A3D" Foreground="#F8FAFC" Height="40" CornerRadius="6" VerticalContentAlignment="Center" />
+                         Background="{DynamicResource InputBgBrush}" BorderBrush="{DynamicResource InputBorderBrush}" Foreground="{DynamicResource TextPrimaryBrush}" Height="40" CornerRadius="6" VerticalContentAlignment="Center" />
             </StackPanel>
 
             <!-- Versão do Minecraft e Loader -->
             <Grid ColumnDefinitions="*, *" Margin="0, 4">
                 <StackPanel Grid.Column="0" Margin="0,0,8,0" Spacing="6">
-                    <TextBlock Text="Versão do Jogo:" FontWeight="SemiBold" Foreground="#E2E8F0" FontSize="13" />
+                    <TextBlock Text="Versão do Jogo:" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13" />
                     <ComboBox Name="GameVersionCombo" HorizontalAlignment="Stretch" Height="40"
-                              Background="#161824" BorderBrush="#252A3D" Foreground="#F8FAFC" CornerRadius="6" />
+                              Background="{DynamicResource InputBgBrush}" BorderBrush="{DynamicResource InputBorderBrush}" Foreground="{DynamicResource TextPrimaryBrush}" CornerRadius="6" />
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Margin="8,0,0,0" Spacing="6">
-                    <TextBlock Text="Mod Loader:" FontWeight="SemiBold" Foreground="#E2E8F0" FontSize="13" />
+                    <TextBlock Text="Mod Loader:" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13" />
                     <ComboBox Name="LoaderTypeCombo" HorizontalAlignment="Stretch" Height="40"
-                              Background="#161824" BorderBrush="#252A3D" Foreground="#F8FAFC" CornerRadius="6" />
+                              Background="{DynamicResource InputBgBrush}" BorderBrush="{DynamicResource InputBorderBrush}" Foreground="{DynamicResource TextPrimaryBrush}" CornerRadius="6" />
                 </StackPanel>
             </Grid>
 
             <!-- Versão do Loader -->
             <StackPanel Spacing="6">
-                <TextBlock Text="Versão do Loader:" FontWeight="SemiBold" Foreground="#E2E8F0" FontSize="13" />
+                <TextBlock Text="Versão do Loader:" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13" />
                 <ComboBox Name="LoaderVersionCombo" HorizontalAlignment="Stretch" Height="40"
-                          Background="#161824" BorderBrush="#252A3D" Foreground="#F8FAFC" CornerRadius="6" />
+                          Background="{DynamicResource InputBgBrush}" BorderBrush="{DynamicResource InputBorderBrush}" Foreground="{DynamicResource TextPrimaryBrush}" CornerRadius="6" />
             </StackPanel>
 
             <!-- Botões de Ação -->
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="12" Margin="0, 10, 0, 0">
-                <Button Content="Cancelar" Click="OnCancelClicked" Width="100" Height="38" Background="#1E2333" BorderBrush="#252A3D" Foreground="#E2E8F0" />
-                <Button Content="Criar Instância" Click="OnCreateClicked" Width="140" Height="38" Background="#10B981" BorderBrush="#059669" Foreground="#0B0D14" FontWeight="Bold" />
+                <Button Content="Cancelar" Click="OnCancelClicked" Width="100" Height="38" Background="{DynamicResource SecondaryBtnBgBrush}" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Foreground="{DynamicResource SecondaryBtnFgBrush}" />
+                <Button Content="Criar Instância" Click="OnCreateClicked" Width="140" Height="38" Background="{DynamicResource AccentBrush}" BorderBrush="{DynamicResource AccentBorderBrush}" Foreground="{DynamicResource AccentOnBrush}" FontWeight="Bold" />
             </StackPanel>
         </StackPanel>
     </Border>

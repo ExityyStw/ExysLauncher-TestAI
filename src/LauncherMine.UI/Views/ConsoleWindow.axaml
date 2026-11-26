@@ -4,24 +4,24 @@
         Title="Console de Diagnóstico de Logs"
         Width="820" Height="500"
         WindowStartupLocation="CenterScreen"
-        Background="#0F111A">
+        Background="{DynamicResource WindowBgBrush}">
 
     <Grid RowDefinitions="*, 40">
-        <Border Grid.Row="0" BorderBrush="#1E2235" BorderThickness="0,0,0,1">
+        <Border Grid.Row="0" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0,0,0,1">
             <TextBox Name="LogTextBox"
                      IsReadOnly="True"
                      FontFamily="Cascadia Code, Consolas, Courier New"
                      FontSize="12"
-                     Foreground="#38BDF8"
-                     Background="#0A0B10"
+                     Foreground="{DynamicResource CodeFgBrush}"
+                     Background="{DynamicResource CodeBgBrush}"
                      BorderThickness="0"
                      AcceptsReturn="True"
                      TextWrapping="Wrap" />
         </Border>
 
-        <Border Grid.Row="1" Background="#131520" Padding="16, 6">
+        <Border Grid.Row="1" Background="{DynamicResource HeaderFooterBgBrush}" Padding="16, 6">
             <TextBlock Text="✦ Monitorando saída padrão (stdout / stderr) do Java do Minecraft em tempo real..." 
-                       FontSize="11" Foreground="#64748B" FontWeight="SemiBold" VerticalAlignment="Center" />
+                       FontSize="11" Foreground="{DynamicResource TextMutedBrush}" FontWeight="SemiBold" VerticalAlignment="Center" />
         </Border>
     </Grid>
 </Window>

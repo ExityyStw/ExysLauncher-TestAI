@@ -3,7 +3,11 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
+using Avalonia;
+using Avalonia.Styling;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using LauncherMine.Core.Auth;
@@ -24,9 +28,24 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     private readonly MinecraftLauncher _minecraftLauncher;
     private readonly ModpackUpdater _updater;
     private readonly ModpackImporter _importer;
+    private bool _isSyncingInstance;
+    private CancellationTokenSource? _loaderFetchCts;
 
     [ObservableProperty]
-    private int _selectedTabIndex = 0; // 0 = Jogar, 1 = Instâncias, 2 = JVM & Otimizações, 3 = Importar Modpack
+    [NotifyPropertyChangedFor(nameof(IsPlayTab), nameof(IsInstancesTab), nameof(IsJvmTab), nameof(IsImportTab))]
+    private int _selectedTabIndex = 0; // 0 = Jogar, 1 = Instâncias, 2 = Loader & JVM, 3 = Importar ZIP
+
+    public bool IsPlayTab => SelectedTabIndex == 0;
+    public bool IsInstancesTab => SelectedTabIndex == 1;
+    public bool IsJvmTab => SelectedTabIndex == 2;
+    public bool IsImportTab => SelectedTabIndex == 3;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ThemeToggleIcon), nameof(ThemeToggleTooltip))]
+    private bool _isDarkMode = false;
+
+    public string ThemeToggleIcon => IsDarkMode ? "☀" : "🌙";
+    public string ThemeToggleTooltip => IsDarkMode ? "Voltar ao Tema Papel (Claro)" : "Ativar Modo Escuro";
 
     [ObservableProperty]
     private string _statusMessage = "Pronto para jogar";
@@ -57,6 +76,12 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     private string _ramInfoText = "Detectando hardware...";
 
     [ObservableProperty]
+    private bool _hasRecommended16GbRam = false;
+
+    [ObservableProperty]
+    private string _ramBadgeText = "Validando RAM...";
+
+    [ObservableProperty]
     private bool _closeLauncherOnLaunch = false;
 
     [ObservableProperty]
@@ -81,6 +106,9 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     private string _selectedLoaderVersion = "21.1.84";
 
     public ObservableCollection<string> AvailableGameVersions { get; } = [];
+
+    [ObservableProperty]
+    private string _selectedGameVersion = "1.21.1";
 
     public ObservableCollection<AccountProfile> Accounts { get; } = [];
 
@@ -122,12 +150,72 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         }
         UpdateJvmArgsFromPreset();
 
-        // 3. Preenche Versões
+        // 3. Preenche Versões Iniciais
         foreach (var v in VersionCatalogService.DefaultVanillaReleases)
         {
             AvailableGameVersions.Add(v);
         }
-        UpdateLoaderVersionsList();
+        UpdateLoaderVersionsListSync();
+
+        // 4. Carrega preferência de tema (padrão: Tema Papel Claro)
+        LoadThemePreference();
+    }
+
+    private static string GetUiSettingsPath()
+    {
+        string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        return Path.Combine(appData, "LauncherMine", "ui-settings.json");
+    }
+
+    private void LoadThemePreference()
+    {
+        try
+        {
+            string path = GetUiSettingsPath();
+            if (File.Exists(path))
+            {
+                using var doc = JsonDocument.Parse(File.ReadAllText(path));
+                if (doc.RootElement.TryGetProperty("isDarkMode", out var prop) && prop.ValueKind == JsonValueKind.True)
+                {
+                    IsDarkMode = true;
+                }
+            }
+        }
+        catch
+        {
+            // Ignora erro de leitura e mantém Tema Papel padrão
+        }
+
+        ApplyTheme(IsDarkMode);
+    }
+
+    partial void OnIsDarkModeChanged(bool value)
+    {
+        ApplyTheme(value);
+        try
+        {
+            string path = GetUiSettingsPath();
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            File.WriteAllText(path, JsonSerializer.Serialize(new { isDarkMode = value }));
+        }
+        catch
+        {
+            // Ignora erro de escrita de preferência visual
+        }
+    }
+
+    private static void ApplyTheme(bool dark)
+    {
+        if (Application.Current is not null)
+        {
+            Application.Current.RequestedThemeVariant = dark ? ThemeVariant.Dark : ThemeVariant.Light;
+        }
+    }
+
+    [RelayCommand]
+    private void ToggleTheme()
+    {
+        IsDarkMode = !IsDarkMode;
     }
 
     private void DetectSystemRam()
@@ -139,15 +227,27 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         double totalGb = Math.Round(TotalSystemRamMb / 1024.0, 1);
         double maxGb = Math.Round(MaxRamSliderMb / 1024.0, 1);
 
-        // Seleciona um valor padrão inteligente com base na RAM do usuário
-        if (TotalSystemRamMb >= 16384)
-            RamAllocationMb = 6144; // 6 GB padrão se tiver 16 GB+
-        else if (TotalSystemRamMb >= 8192)
-            RamAllocationMb = 4096; // 4 GB padrão se tiver 8 GB
-        else
-            RamAllocationMb = 2048; // 2 GB se tiver menos
+        // Valida se o PC atende à recomendação de 16 GB para modpacks pesados (tolera ~15.5 GB reais reportados pelo Windows)
+        HasRecommended16GbRam = TotalSystemRamMb >= 15360;
 
-        RamInfoText = $"Seu computador possui {totalGb} GB de RAM física detectada. Limite seguro: até {maxGb} GB.";
+        if (HasRecommended16GbRam)
+        {
+            RamAllocationMb = Math.Min(6144, MaxRamSliderMb);
+            RamBadgeText = $"✓ {totalGb:0.#} GB RAM (16 GB+ OK)";
+            RamInfoText = $"Hardware validado: {totalGb:0.#} GB de RAM física. Limite seguro: até {maxGb:0.#} GB ({MaxRamSliderMb} MB).";
+        }
+        else if (TotalSystemRamMb >= 8192)
+        {
+            RamAllocationMb = Math.Min(4096, MaxRamSliderMb);
+            RamBadgeText = $"⚠ {totalGb:0.#} GB RAM (< 16 GB)";
+            RamInfoText = $"PC com {totalGb:0.#} GB de RAM (abaixo dos 16 GB ideais para 300+ mods). Limite seguro: {maxGb:0.#} GB.";
+        }
+        else
+        {
+            RamAllocationMb = Math.Min(2048, MaxRamSliderMb);
+            RamBadgeText = $"⚠ {totalGb:0.#} GB RAM (Baixa)";
+            RamInfoText = $"Atenção: apenas {totalGb:0.#} GB de RAM detectados. Recomendado Vanilla ou packs leves. Limite: {maxGb:0.#} GB.";
+        }
     }
 
     public async Task InitializeAsync()
@@ -167,11 +267,11 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         if (Instances.Count == 0)
         {
             var defaultInstance = await _instanceManager.CreateInstanceAsync(
-                "NeoForge 1.21.1 Pack", 
-                "1.21.1", 
-                "neoforge", 
+                "NeoForge 1.21.1 Pack",
+                "1.21.1",
+                "neoforge",
                 "21.1.84");
-            
+
             SyncInstancesFromManager();
             SelectedInstance = defaultInstance;
         }
@@ -180,22 +280,24 @@ public sealed partial class MainWindowViewModel : ViewModelBase
             SelectedInstance = Instances[0];
         }
 
-        if (SelectedInstance != null)
-        {
-            RamAllocationMb = Math.Clamp(SelectedInstance.MaxMemoryMb, MinRamSliderMb, MaxRamSliderMb);
-            SelectedLoader = SelectedInstance.LoaderType;
-            SelectedLoaderVersion = SelectedInstance.LoaderVersion ?? "21.1.84";
-        }
-
-        // Busca versões online em segundo plano sem travar a interface
+        // Busca versões online (Vanilla + Loaders) em segundo plano sem travar a interface
         _ = Task.Run(async () =>
         {
             var onlineVersions = await VersionCatalogService.GetVanillaVersionsAsync();
-            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            var loaderVersions = await VersionCatalogService.GetVersionsForLoaderAsync(SelectedLoader, SelectedGameVersion);
+
+            Dispatcher.UIThread.Post(() =>
             {
+                string currentGameVer = SelectedGameVersion;
                 AvailableGameVersions.Clear();
                 foreach (var v in onlineVersions)
                     AvailableGameVersions.Add(v);
+
+                if (!AvailableGameVersions.Contains(currentGameVer) && !string.IsNullOrWhiteSpace(currentGameVer))
+                    AvailableGameVersions.Insert(0, currentGameVer);
+
+                SelectedGameVersion = currentGameVer;
+                ApplyLoaderVersionsList(loaderVersions, preserveSelected: SelectedLoaderVersion);
             });
         });
     }
@@ -219,6 +321,38 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         }
     }
 
+    partial void OnSelectedInstanceChanged(InstanceMetadata? value)
+    {
+        if (value == null) return;
+
+        _isSyncingInstance = true;
+        try
+        {
+            RamAllocationMb = Math.Clamp(value.MaxMemoryMb, MinRamSliderMb, MaxRamSliderMb);
+            CloseLauncherOnLaunch = value.CloseLauncherOnLaunch;
+
+            if (!string.IsNullOrWhiteSpace(value.GameVersion))
+            {
+                if (!AvailableGameVersions.Contains(value.GameVersion))
+                    AvailableGameVersions.Insert(0, value.GameVersion);
+                SelectedGameVersion = value.GameVersion;
+            }
+
+            SelectedLoader = string.IsNullOrWhiteSpace(value.LoaderType) ? "vanilla" : value.LoaderType;
+
+            if (value.ExtraJvmArgs is { Count: > 0 })
+                CustomJvmArgsText = string.Join(" ", value.ExtraJvmArgs);
+
+            UpdateLoaderVersionsListSync(preserveSelected: value.LoaderVersion);
+        }
+        finally
+        {
+            _isSyncingInstance = false;
+        }
+
+        _ = RefreshLoaderVersionsOnlineAsync(SelectedLoader, SelectedGameVersion, value.LoaderVersion);
+    }
+
     [RelayCommand]
     public async Task PlayAsync()
     {
@@ -232,8 +366,9 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         {
             SelectedInstance.MaxMemoryMb = RamAllocationMb;
             SelectedInstance.CloseLauncherOnLaunch = CloseLauncherOnLaunch;
+            SelectedInstance.GameVersion = SelectedGameVersion;
             SelectedInstance.LoaderType = SelectedLoader;
-            SelectedInstance.LoaderVersion = SelectedLoaderVersion;
+            SelectedInstance.LoaderVersion = SelectedLoader == "vanilla" ? null : SelectedLoaderVersion;
 
             if (!string.IsNullOrWhiteSpace(CustomJvmArgsText))
             {
@@ -394,17 +529,67 @@ public sealed partial class MainWindowViewModel : ViewModelBase
 
     partial void OnSelectedLoaderChanged(string value)
     {
-        UpdateLoaderVersionsList();
+        if (_isSyncingInstance) return;
+        UpdateLoaderVersionsListSync();
+        _ = RefreshLoaderVersionsOnlineAsync(value, SelectedGameVersion, null);
     }
 
-    private void UpdateLoaderVersionsList()
+    partial void OnSelectedGameVersionChanged(string value)
+    {
+        if (_isSyncingInstance || string.IsNullOrWhiteSpace(value)) return;
+        _ = RefreshLoaderVersionsOnlineAsync(SelectedLoader, value, null);
+    }
+
+    private void UpdateLoaderVersionsListSync(string? preserveSelected = null)
+    {
+        var fallback = VersionCatalogService.GetVersionsForLoader(SelectedLoader);
+        ApplyLoaderVersionsList(fallback, preserveSelected);
+    }
+
+    private async Task RefreshLoaderVersionsOnlineAsync(string loaderType, string gameVersion, string? preserveSelected)
+    {
+        _loaderFetchCts?.Cancel();
+        _loaderFetchCts = new CancellationTokenSource();
+        var token = _loaderFetchCts.Token;
+
+        try
+        {
+            var versions = await VersionCatalogService.GetVersionsForLoaderAsync(loaderType, gameVersion, token);
+            if (token.IsCancellationRequested) return;
+
+            Dispatcher.UIThread.Post(() =>
+            {
+                if (SelectedLoader == loaderType && SelectedGameVersion == gameVersion)
+                {
+                    ApplyLoaderVersionsList(versions, preserveSelected);
+                }
+            });
+        }
+        catch
+        {
+            // Ignora cancelamentos/falhas de rede e mantém fallback local
+        }
+    }
+
+    private void ApplyLoaderVersionsList(System.Collections.Generic.IEnumerable<string> versions, string? preserveSelected)
     {
         AvailableLoaderVersions.Clear();
-        foreach (var v in VersionCatalogService.GetVersionsForLoader(SelectedLoader))
+        foreach (var v in versions)
         {
             AvailableLoaderVersions.Add(v);
         }
-        SelectedLoaderVersion = AvailableLoaderVersions.FirstOrDefault() ?? "1.0";
+
+        if (!string.IsNullOrWhiteSpace(preserveSelected) && SelectedLoader != "vanilla")
+        {
+            if (!AvailableLoaderVersions.Contains(preserveSelected))
+                AvailableLoaderVersions.Insert(0, preserveSelected);
+
+            SelectedLoaderVersion = preserveSelected;
+        }
+        else
+        {
+            SelectedLoaderVersion = AvailableLoaderVersions.FirstOrDefault() ?? "1.0";
+        }
     }
 
     partial void OnSelectedJvmPresetChanged(string value)

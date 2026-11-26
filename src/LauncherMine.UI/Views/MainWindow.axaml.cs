@@ -85,6 +85,22 @@ public partial class MainWindow : Window
         }
     }
 
+    private void OnOpenInstanceFolderClicked(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.DataContext is InstanceMetadata inst && DataContext is MainWindowViewModel vm)
+        {
+            vm.OpenInstanceFolder(inst);
+        }
+    }
+
+    private async void OnDeleteInstanceClicked(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.DataContext is InstanceMetadata inst && DataContext is MainWindowViewModel vm)
+        {
+            await vm.DeleteInstanceAsync(inst);
+        }
+    }
+
     private async void OnBrowseZipClicked(object? sender, RoutedEventArgs e)
     {
         if (DataContext is not MainWindowViewModel vm) return;
