@@ -268,29 +268,16 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         await _accountManager.LoadAccountsAsync();
         SyncAccountsFromManager();
 
-        if (Accounts.Count == 0)
-        {
-            var demoAccount = OfflineAuthService.CreateOfflineAccount("Steve");
-            await _accountManager.AddOrUpdateAccountAsync(demoAccount);
-        }
-
         await _instanceManager.LoadInstancesAsync();
         SyncInstancesFromManager();
 
-        if (Instances.Count == 0)
+        if (Instances.Count > 0)
         {
-            var defaultInstance = await _instanceManager.CreateInstanceAsync(
-                "NeoForge 1.21.1 Pack",
-                "1.21.1",
-                "neoforge",
-                "21.1.84");
-
-            SyncInstancesFromManager();
-            SelectedInstance = defaultInstance;
+            SelectedInstance = Instances[0];
         }
         else
         {
-            SelectedInstance = Instances[0];
+            SelectedInstance = null;
         }
 
         // Busca versões online (Vanilla + Loaders) em segundo plano sem travar a interface

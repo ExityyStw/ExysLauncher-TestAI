@@ -1,0 +1,10 @@
+{
+  "description": "Explore and manage the information and resources provided in the attached content with a streamlined, user-friendly web experience.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}

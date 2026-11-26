@@ -22,7 +22,7 @@
             <!-- Nome da Instância -->
             <StackPanel Spacing="6">
                 <TextBlock Text="Nome da Instância:" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13" />
-                <TextBox Name="InstanceNameBox" Text="NeoForge 1.21.1 Pack" 
+                <TextBox Name="InstanceNameBox" Watermark="Digite o nome da sua instância"
                          Background="{DynamicResource InputBgBrush}" BorderBrush="{DynamicResource InputBorderBrush}" Foreground="{DynamicResource TextPrimaryBrush}" Height="40" CornerRadius="6" VerticalContentAlignment="Center" />
             </StackPanel>
 

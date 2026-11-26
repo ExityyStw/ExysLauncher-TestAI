@@ -146,6 +146,14 @@ public partial class MainWindow : Window
         }
     }
 
+    private void OnAccountMenuClicked(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.ContextMenu is ContextMenu menu)
+        {
+            menu.Open(btn);
+        }
+    }
+
     private async void OnLoginMicrosoftClicked(object? sender, RoutedEventArgs e)
     {
         var dialog = new MicrosoftLoginDialog();
@@ -225,5 +233,29 @@ public partial class MainWindow : Window
     {
         if (DataContext is MainWindowViewModel vm)
             vm.SelectedTabIndex = 2;
+    }
+
+    private void OnNavHomeClicked(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel vm)
+        {
+            vm.SelectedTabIndex = 0; // Tela Inicial
+        }
+    }
+
+    private void OnNavInstancesClicked(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel vm)
+        {
+            vm.SelectedTabIndex = 1; // Meus perfis / Instâncias
+        }
+    }
+
+    private void OnNavSettingsClicked(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel vm)
+        {
+            vm.SelectedTabIndex = 2; // Configurações
+        }
     }
 }

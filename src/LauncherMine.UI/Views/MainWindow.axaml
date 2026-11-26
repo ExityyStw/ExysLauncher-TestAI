@@ -5,21 +5,21 @@
         x:Class="LauncherMine.UI.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="Exys Launcher"
-        Width="800" Height="550"
-        MinWidth="750" MinHeight="500"
+        Width="900" Height="600"
+        MinWidth="700" MinHeight="500"
         WindowStartupLocation="CenterScreen"
-        Background="{DynamicResource WindowBgBrush}">
+        Background="#FFDFAE">
 
     <Window.Styles>
         <Style Selector="TextBlock">
             <Setter Property="FontFamily" Value="Segoe UI, Arial, sans-serif" />
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+            <Setter Property="Foreground" Value="#513321" />
         </Style>
 
         <Style Selector="Button">
-            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="CornerRadius" Value="6" />
             <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="Padding" Value="14, 8" />
+            <Setter Property="Padding" Value="12, 6" />
         </Style>
 
         <Style Selector="Button:pointerover">
@@ -27,119 +27,283 @@
         </Style>
     </Window.Styles>
 
-    <Grid RowDefinitions="Auto, *, Auto">
+    <Grid ColumnDefinitions="200, *">
         
-        <!-- HEADER -->
-        <Border Grid.Row="0" Background="{DynamicResource HeaderFooterBgBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0,0,0,1" Padding="20, 12">
-            <Grid ColumnDefinitions="Auto, *, Auto">
+        <!-- SIDEBAR -->
+        <Border Grid.Column="0" Background="#F3D0A1" BorderBrush="#D5A675" BorderThickness="0,0,1,0" Padding="12, 20">
+            <StackPanel Spacing="12">
                 
                 <!-- Logo -->
-                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                    <Border Width="32" Height="32" CornerRadius="6" Background="{DynamicResource AccentBrush}">
-                        <TextBlock Text="EX" FontSize="16" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource AccentOnBrush}" />
-                    </Border>
-                    <TextBlock Text="Exys Launcher" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                <Border Background="Transparent" CornerRadius="6" Padding="6, 4">
+                    <StackPanel Spacing="2">
+                        <TextBlock Text="ExysLauncher" FontSize="16" FontWeight="Bold" Foreground="#A6512A" FontFamily="Times New Roman, serif" FontStyle="Italic" />
+                        <TextBlock Text="exityy productions" FontSize="9" Foreground="#7C593B" HorizontalAlignment="Center" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Navegação Principal -->
+                <StackPanel Spacing="2">
+                    <TextBlock Text="NAVEGAÇÃO" FontSize="9" FontWeight="Bold" Foreground="#7C593B" Margin="4,0" />
+                    
+                    <Button Name="NavHome" Content="Início" Background="Transparent" Foreground="#795739" BorderThickness="0" 
+                            HorizontalAlignment="Stretch" Margin="0,1" Padding="8, 4" Click="OnNavHomeClicked" />
+                    <Button Name="NavInstances" Content="Meus perfis" Background="Transparent" Foreground="#795739" BorderThickness="0" 
+                            HorizontalAlignment="Stretch" Margin="0,1" Padding="8, 4" Click="OnNavInstancesClicked" />
+                    <Button Name="NavSettings" Content="Configurações" Background="Transparent" Foreground="#795739" BorderThickness="0" 
+                            HorizontalAlignment="Stretch" Margin="0,1" Padding="8, 4" Click="OnShowSettingsClicked" />
                 </StackPanel>
 
-                <!-- Contas -->
-                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                    <Border Background="{DynamicResource CardBgBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="4" Padding="8, 4">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <ComboBox ItemsSource="{Binding Accounts}"
-                                      SelectedItem="{Binding SelectedAccount}"
-                                      MinWidth="100" Background="Transparent" BorderThickness="0" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12">
-                                <ComboBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <StackPanel Orientation="Horizontal" Spacing="4">
-                                            <TextBlock Text="{Binding Username}" />
-                                            <TextBlock Text="MS" Foreground="{DynamicResource AccentBrush}" FontSize="10" 
-                                                       IsVisible="{Binding Type, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static models:AccountType.Microsoft}}" />
-                                            <TextBlock Text="OFF" Foreground="{DynamicResource TextMutedBrush}" FontSize="10" 
-                                                       IsVisible="{Binding Type, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static models:AccountType.Offline}}" />
-                                        </StackPanel>
-                                    </DataTemplate>
-                                </ComboBox.ItemTemplate>
-                            </ComboBox>
-                            <Button Content="×" Width="20" Height="20" FontSize="12" Background="{DynamicResource BorderSubtleBrush}" Foreground="{DynamicResource DangerFgBrush}" Padding="0" 
-                                    Click="OnRemoveAccountClicked" ToolTip.Tip="Remover" />
+                <!-- Card Inspiracional -->
+                <Border Background="#FFEBC7" BorderBrush="#DFB27B" BorderThickness="1" CornerRadius="6" Padding="10" Margin="0, 12, 0, 0">
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="menos pressa," FontSize="14" Foreground="#955331" FontFamily="Times New Roman, serif" FontStyle="Italic" />
+                        <TextBlock Text="mais bloquinhos." FontSize="14" Foreground="#955331" FontFamily="Times New Roman, serif" FontStyle="Italic" />
+                        <TextBlock Text="um mundo de cada vez ♡" FontSize="9" Foreground="#866045" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Footer Sidebar -->
+                <StackPanel Spacing="2" Margin="0, 16, 0, 0">
+                    <Button Content="Configurações" Background="Transparent" Foreground="#795739" BorderThickness="0" 
+                            HorizontalAlignment="Stretch" Padding="8, 4" Click="OnShowSettingsClicked" />
+                    <Button Content="Ajuda e comunidade" Background="Transparent" Foreground="#795739" BorderThickness="0" 
+                            HorizontalAlignment="Stretch" Padding="8, 4" />
+                    
+                    <!-- Perfil -->
+                    <Button Name="AccountButton" Background="#EBC08D" BorderThickness="0" CornerRadius="6" Padding="8" Margin="0, 6, 0, 0"
+                            HorizontalAlignment="Stretch" Click="OnAccountMenuClicked">
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="{Binding SelectedAccount.Username, FallbackValue='Meu aventureiro'}" FontSize="10" FontWeight="Bold" Foreground="#A4512C" />
+                            <TextBlock Text="Gerenciar contas" FontSize="8" Foreground="#806043" />
                         </StackPanel>
-                    </Border>
-                    <Button Name="AddAccountButton" Content="+" Width="28" Height="24" Background="{DynamicResource AccentBrush}" Foreground="{DynamicResource AccentOnBrush}" 
-                            FontSize="14" Padding="0" Click="OnAddAccountMenuClicked" ToolTip.Tip="Adicionar">
                         <Button.ContextMenu>
                             <ContextMenu Name="AccountContextMenu">
-                                <MenuItem Header="Conta Offline" Click="OnAddAccountClicked" />
+                                <MenuItem Header="Adicionar conta Offline" Click="OnAddAccountClicked" />
                                 <MenuItem Header="Login Microsoft" Click="OnLoginMicrosoftClicked" />
+                                <Separator />
+                                <ItemsControl ItemsSource="{Binding Accounts}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <MenuItem Header="{Binding Username}" Click="OnRemoveAccountClicked" />
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
                             </ContextMenu>
                         </Button.ContextMenu>
                     </Button>
-                    <Button Name="ThemeToggleButton" Content="🌙" Width="28" Height="24" Background="{DynamicResource BorderSubtleBrush}" Foreground="{DynamicResource TextPrimaryBrush}" 
-                            FontSize="12" Padding="0" Click="OnThemeToggleClicked" ToolTip.Tip="Alternar tema" />
+
+                    <TextBlock Text="ExysLauncher 0.9.4" FontSize="8" Foreground="#826044" HorizontalAlignment="Center" Margin="0, 6, 0, 0" />
                 </StackPanel>
-            </Grid>
+            </StackPanel>
         </Border>
 
-        <!-- MAIN CONTENT - DASHBOARD -->
-        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="20">
-            <StackPanel Spacing="16" MaxWidth="700" HorizontalAlignment="Center">
-                
-                <!-- Instância Atual -->
-                <Border Background="{DynamicResource CardBgBrush}" CornerRadius="8" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" Padding="20">
-                    <StackPanel Spacing="12">
-                        <Grid ColumnDefinitions="*, Auto">
-                            <StackPanel Grid.Column="0" Spacing="4">
-                                <TextBlock Text="Instância Atual" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" />
-                                <TextBlock Text="{Binding SelectedInstance.Name, FallbackValue='Nenhuma selecionada'}" 
-                                           FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
-                                <TextBlock Text="{Binding SelectedInstance.GameVersion, FallbackValue='-'} • {Binding SelectedInstance.LoaderType, FallbackValue='-'}" 
-                                           FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" />
-                            </StackPanel>
-                            <Button Grid.Column="1" Content="Trocar Instância" Click="OnShowInstancesClicked" 
-                                    Background="{DynamicResource HeaderFooterBgBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" />
-                        </Grid>
+        <!-- MAIN CONTENT -->
+        <Grid Grid.Column="1" RowDefinitions="Auto, *, Auto">
+            
+            <!-- Header -->
+            <Border Grid.Row="0" Background="#FFDFAE" Padding="24, 16">
+                <Grid ColumnDefinitions="*, Auto">
+                    <StackPanel Grid.Column="0" Spacing="2">
+                        <TextBlock Text="Bom te ver por aqui." FontSize="20" FontWeight="Bold" Foreground="#513321" FontFamily="Times New Roman, serif" />
+                        <TextBlock Text="Seu próximo mundo começa com uma pausa." FontSize="11" Foreground="#825C3E" />
                     </StackPanel>
-                </Border>
-
-                <!-- RAM -->
-                <Border Background="{DynamicResource CardBgBrush}" CornerRadius="8" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" Padding="20">
-                    <StackPanel Spacing="12">
-                        <Grid ColumnDefinitions="*, Auto">
-                            <StackPanel Grid.Column="0" Spacing="4">
-                                <TextBlock Text="Memória RAM" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" />
-                                <TextBlock Text="{Binding RamAllocationMb, StringFormat='{}{0} MB'}" FontSize="24" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
-                            </StackPanel>
-                        </Grid>
-                        <Slider Minimum="{Binding MinRamSliderMb}" Maximum="{Binding MaxRamSliderMb}" Value="{Binding RamAllocationMb}" 
-                                IsSnapToTickEnabled="True" TickFrequency="512" />
-                        <TextBlock Text="{Binding RamInfoText}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" />
-                    </StackPanel>
-                </Border>
-
-                <!-- Botão JOGAR Grande -->
-                <Button Command="{Binding PlayCommand}" IsEnabled="{Binding !IsBusy}"
-                        Background="{DynamicResource AccentBrush}" Foreground="{DynamicResource AccentOnBrush}" 
-                        Height="60" FontSize="18" FontWeight="Bold">
-                    <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
-                        <TextBlock Text="▶" VerticalAlignment="Center" />
-                        <TextBlock Text="JOGAR" VerticalAlignment="Center" />
-                    </StackPanel>
-                </Button>
-
-                <!-- Ações Rápidas -->
-                <Grid ColumnDefinitions="*, *">
-                    <Button Grid.Column="0" Content="Gerenciar Instâncias" Click="OnShowInstancesClicked"
-                            Background="{DynamicResource HeaderFooterBgBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" Margin="0,0,8,0" />
-                    <Button Grid.Column="1" Content="Configurações" Click="OnShowSettingsClicked"
-                            Background="{DynamicResource HeaderFooterBgBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" Margin="8,0,0,0" />
+                    <Border Grid.Column="1" Background="#F4CCA0" CornerRadius="16" Padding="8, 4">
+                        <TextBlock Text="● Tudo pronto" FontSize="9" Foreground="#A0512C" />
+                    </Border>
                 </Grid>
+            </Border>
 
-                <!-- Status -->
-                <TextBlock Text="{Binding StatusMessage}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" HorizontalAlignment="Center" />
-                <ProgressBar Height="4" Maximum="100" Value="{Binding ProgressValue}" 
-                             IsVisible="{Binding IsProgressVisible}" Foreground="{DynamicResource AccentBrush}" Background="{DynamicResource BorderSubtleBrush}" CornerRadius="2" HorizontalAlignment="Center" Width="400" />
+            <!-- Content Area -->
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="24, 16">
+                <StackPanel Spacing="16">
+                    
+                    <!-- PÁGINA INÍCIO -->
+                    <StackPanel Spacing="16" IsVisible="{Binding IsPlayTab}">
+                        <!-- Hero Section -->
+                        <Border Background="#FFDFAE" CornerRadius="12" BorderBrush="#DFB27B" BorderThickness="1" Height="200" Padding="20">
+                            <StackPanel Spacing="10">
+                                <Border Background="#F4C694" CornerRadius="4" Padding="6, 3" HorizontalAlignment="Left">
+                                    <TextBlock Text="UM RESPIRO NO OVERWORLD" FontSize="8" FontWeight="Bold" Foreground="#A2502B" />
+                                </Border>
+                                <TextBlock Text="Um mundo inteiro. No seu tempo." FontSize="24" FontWeight="Bold" Foreground="#513321" FontFamily="Times New Roman, serif" />
+                                <TextBlock Text="Entre, construa e fique mais um pouquinho. Sua próxima aventura está logo ali." 
+                                           FontSize="11" Foreground="#795435" />
+                            </StackPanel>
+                        </Border>
 
-            </StackPanel>
-        </ScrollViewer>
+                        <!-- Seus Perfis -->
+                        <StackPanel Spacing="10">
+                            <Grid ColumnDefinitions="*, Auto">
+                                <TextBlock Grid.Column="0" Text="Seus perfis" FontSize="18" FontWeight="Bold" Foreground="#513321" FontFamily="Times New Roman, serif" />
+                                <Button Grid.Column="1" Content="+ Novo" Background="#FFF1D9" Foreground="#A44D27" BorderBrush="#DDAA73" BorderThickness="1" 
+                                        Click="OnCreateInstanceClicked" Padding="10, 5" />
+                            </Grid>
+
+                            <ItemsControl ItemsSource="{Binding Instances}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="#FFF1D9" BorderBrush="#DFB17F" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0, 0, 0, 8">
+                                            <Grid ColumnDefinitions="*, Auto, Auto">
+                                                <StackPanel Grid.Column="0" Spacing="6">
+                                                    <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="Bold" Foreground="#513321" />
+                                                    <TextBlock Text="{Binding GameVersion} • {Binding LoaderType}" FontSize="11" Foreground="#805739" />
+                                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                                        <Border Background="#F3C695" CornerRadius="4" Padding="4, 2">
+                                                            <TextBlock Text="Instância" FontSize="9" Foreground="#96502C" />
+                                                        </Border>
+                                                        <TextBlock Text="Pronto" FontSize="9" Foreground="#805A3C" />
+                                                    </StackPanel>
+                                                </StackPanel>
+                                                <Button Grid.Column="1" Content="Selecionar" Background="#F3C694" Foreground="#914626" 
+                                                        Click="OnSelectInstanceClicked" Margin="0, 0, 6, 0" Padding="10, 5" />
+                                                <Button Grid.Column="2" Content="🗑" Background="#FFEBC7" Foreground="#A3512C" Width="36" Height="32" Padding="0"
+                                                        Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).DeleteInstanceCommand}"
+                                                        CommandParameter="{Binding}" />
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- PÁGINA PERFIS -->
+                    <StackPanel Spacing="16" IsVisible="{Binding IsInstancesTab}">
+                        <Grid ColumnDefinitions="*, Auto">
+                            <TextBlock Grid.Column="0" Text="Meus perfis" FontSize="18" FontWeight="Bold" Foreground="#513321" FontFamily="Times New Roman, serif" />
+                            <Button Grid.Column="1" Content="+ Novo" Background="#FFF1D9" Foreground="#A44D27" BorderBrush="#DDAA73" BorderThickness="1" 
+                                    Click="OnCreateInstanceClicked" Padding="10, 5" />
+                        </Grid>
+
+                        <ItemsControl ItemsSource="{Binding Instances}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="#FFF1D9" BorderBrush="#DFB17F" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0, 0, 0, 8">
+                                        <Grid ColumnDefinitions="*, Auto, Auto">
+                                            <StackPanel Grid.Column="0" Spacing="6">
+                                                <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="Bold" Foreground="#513321" />
+                                                <TextBlock Text="{Binding GameVersion} • {Binding LoaderType}" FontSize="11" Foreground="#805739" />
+                                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                                    <Border Background="#F3C695" CornerRadius="4" Padding="4, 2">
+                                                        <TextBlock Text="Instância" FontSize="9" Foreground="#96502C" />
+                                                    </Border>
+                                                    <TextBlock Text="Pronto" FontSize="9" Foreground="#805A3C" />
+                                                </StackPanel>
+                                            </StackPanel>
+                                            <Button Grid.Column="1" Content="Selecionar" Background="#F3C694" Foreground="#914626" 
+                                                    Click="OnSelectInstanceClicked" Margin="0, 0, 6, 0" Padding="10, 5" />
+                                            <Button Grid.Column="2" Content="🗑" Background="#FFEBC7" Foreground="#A3512C" Width="36" Height="32" Padding="0"
+                                                    Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).DeleteInstanceCommand}"
+                                                    CommandParameter="{Binding}" />
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+
+                    <!-- PÁGINA CONFIGURAÇÕES -->
+                    <StackPanel Spacing="16" IsVisible="{Binding IsJvmTab}">
+                        <TextBlock Text="Configurações" FontSize="18" FontWeight="Bold" Foreground="#513321" FontFamily="Times New Roman, serif" />
+                        
+                        <!-- RAM -->
+                        <Border Background="#FFF1D9" BorderBrush="#DFB17F" BorderThickness="1" CornerRadius="10" Padding="16">
+                            <StackPanel Spacing="12">
+                                <Grid ColumnDefinitions="*, Auto">
+                                    <TextBlock Grid.Column="0" Text="Memória RAM" FontSize="13" FontWeight="SemiBold" Foreground="#513321" />
+                                    <TextBlock Grid.Column="1" Text="{Binding RamAllocationMb, StringFormat='{}{0} MB'}" FontSize="14" FontWeight="Bold" Foreground="#9F4E2B" />
+                                </Grid>
+                                <Slider Minimum="{Binding MinRamSliderMb}" Maximum="{Binding MaxRamSliderMb}" Value="{Binding RamAllocationMb}" 
+                                        IsSnapToTickEnabled="True" TickFrequency="512" />
+                                <TextBlock Text="{Binding RamInfoText}" FontSize="11" Foreground="#795435" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Java -->
+                        <Border Background="#FFF1D9" BorderBrush="#DFB17F" BorderThickness="1" CornerRadius="10" Padding="16">
+                            <StackPanel Spacing="12">
+                                <Grid ColumnDefinitions="*, Auto">
+                                    <TextBlock Grid.Column="0" Text="Java" FontSize="13" FontWeight="SemiBold" Foreground="#513321" />
+                                    <TextBlock Grid.Column="1" Text="{Binding SelectedJavaDisplay, FallbackValue='Auto'}" FontSize="12" Foreground="#795435" />
+                                </Grid>
+                                <Button Content="Selecionar Java customizado..." Click="OnSelectJavaClicked" 
+                                        Background="#F3C694" Foreground="#914626" Padding="10, 5" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- GC -->
+                        <Border Background="#FFF1D9" BorderBrush="#DFB17F" BorderThickness="1" CornerRadius="10" Padding="16">
+                            <StackPanel Spacing="12">
+                                <Grid ColumnDefinitions="*, Auto">
+                                    <StackPanel Grid.Column="0" Spacing="4">
+                                        <TextBlock Text="Garbage Collector" FontSize="13" FontWeight="SemiBold" Foreground="#513321" />
+                                        <TextBlock Text="Otimização de performance" FontSize="11" Foreground="#795435" />
+                                    </StackPanel>
+                                    <ComboBox Grid.Column="1" ItemsSource="{Binding JvmPresetNames}" SelectedItem="{Binding SelectedJvmPreset}"
+                                              Width="180" Height="32" Background="#FFF5E4" Foreground="#513321" CornerRadius="4" />
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Launcher -->
+                        <Border Background="#FFF1D9" BorderBrush="#DFB17F" BorderThickness="1" CornerRadius="10" Padding="16">
+                            <StackPanel Spacing="8">
+                                <CheckBox IsChecked="{Binding CloseLauncherOnLaunch}" Foreground="#513321">
+                                    <TextBlock Text="Fechar launcher ao iniciar o jogo (libera memória RAM)" FontSize="12" />
+                                </CheckBox>
+                                <CheckBox IsChecked="{Binding OpenConsoleOnLaunch}" Foreground="#513321">
+                                    <TextBlock Text="Exibir console de logs para depuração" FontSize="12" />
+                                </CheckBox>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Footer -->
+            <Border Grid.Row="2" Background="#FFF1D9" BorderBrush="#DFB17F" BorderThickness="1,0,0,0" Padding="12, 10">
+                <Grid ColumnDefinitions="*, Auto, Auto, Auto">
+                    
+                    <!-- Perfil Selecionado -->
+                    <Button Grid.Column="0" Background="Transparent" BorderThickness="0" HorizontalAlignment="Stretch" Click="OnNavInstancesClicked">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Border Background="#F3C492" CornerRadius="6" Padding="6">
+                                <TextBlock Text="📦" FontSize="14" />
+                            </Border>
+                            <StackPanel Spacing="1">
+                                <TextBlock Text="PERFIL" FontSize="7" FontWeight="Bold" Foreground="#805335" />
+                                <TextBlock Text="{Binding SelectedInstance.Name, FallbackValue='Nenhum'}" FontSize="12" FontWeight="Bold" Foreground="#513321" />
+                                <TextBlock Text="{Binding SelectedInstance.GameVersion, FallbackValue='-'}" FontSize="9" Foreground="#805739" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Button>
+
+                    <!-- Memória -->
+                    <Button Grid.Column="1" Background="Transparent" BorderBrush="#DFB17F" BorderThickness="0,0,1,0" Padding="12, 0"
+                            Click="OnShowSettingsClicked">
+                        <StackPanel Spacing="1">
+                            <TextBlock Text="{Binding RamAllocationMb, StringFormat='{}{0} GB'}" FontSize="11" FontWeight="Bold" Foreground="#513321" />
+                            <TextBlock Text="Memória" FontSize="8" Foreground="#805739" />
+                        </StackPanel>
+                    </Button>
+
+                    <!-- Status -->
+                    <TextBlock Grid.Column="2" Text="● Pronto" FontSize="10" Foreground="#AA542D" VerticalAlignment="Center" Margin="12, 0" />
+
+                    <!-- Botão JOGAR -->
+                    <Button Grid.Column="3" Command="{Binding PlayCommand}" IsEnabled="{Binding !IsBusy}"
+                            Background="#9F4E2B" Foreground="#FFF0DA" 
+                            Width="140" Height="44" FontSize="13" FontWeight="Bold" Padding="16, 8">
+                        <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
+                            <TextBlock Text="▶" VerticalAlignment="Center" />
+                            <TextBlock Text="Jogar" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                </Grid>
+            </Border>
+
+        </Grid>
 
     </Grid>
 </Window>
