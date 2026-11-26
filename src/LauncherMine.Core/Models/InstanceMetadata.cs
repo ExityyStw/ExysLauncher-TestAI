@@ -22,6 +22,9 @@ public sealed class InstanceMetadata
     [JsonPropertyName("customJavaPath")]
     public string? CustomJavaPath { get; set; } // Nulo = Detecção automática recomendada
 
+    [JsonPropertyName("manifestUrl")]
+    public string? ManifestUrl { get; set; } // URL HTTPS do manifesto remoto de modpack (null = sem sincronização)
+
     [JsonPropertyName("minMemoryMb")]
     public int MinMemoryMb { get; set; } = 2048;
 

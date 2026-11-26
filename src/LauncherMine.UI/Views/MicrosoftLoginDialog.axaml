@@ -1,0 +1,46 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="LauncherMine.UI.Views.MicrosoftLoginDialog"
+        Title="Login Microsoft"
+        Width="480" Height="320"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False"
+        Background="#0F111A">
+
+    <Border Padding="24">
+        <StackPanel Spacing="16">
+            <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                <Border Width="36" Height="36" CornerRadius="8" Background="#0078D4">
+                    <TextBlock Text="M" FontSize="20" FontWeight="Black"
+                               Foreground="#FFFFFF"
+                               HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Border>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="Login Microsoft" FontSize="16" FontWeight="Bold" Foreground="#E2E8F0" />
+                    <TextBlock Text="Autenticação oficial de conta Xbox/Mojang" FontSize="11" Foreground="#64748B" />
+                </StackPanel>
+            </StackPanel>
+
+            <Border Background="#1E293B" BorderBrush="#334155" BorderThickness="1" CornerRadius="8" Padding="16">
+                <StackPanel Spacing="8">
+                    <TextBlock Text="Código do Dispositivo:" FontSize="12" FontWeight="SemiBold" Foreground="#64748B" />
+                    <TextBlock Name="UserCodeText" Text="Solicitando..." FontSize="22" FontWeight="Bold"
+                               Foreground="#38BDF8" HorizontalAlignment="Center" />
+                    <TextBlock Name="StatusText" Text="Aguardando resposta da Microsoft..." FontSize="11"
+                               Foreground="#94A3B8" HorizontalAlignment="Center" />
+                </StackPanel>
+            </Border>
+
+            <StackPanel Spacing="4">
+                <TextBlock Text="1. Acesse microsoft.com/link em seu navegador" FontSize="12" Foreground="#E2E8F0" />
+                <TextBlock Text="2. Digite o código acima e faça login" FontSize="12" Foreground="#E2E8F0" />
+                <TextBlock Text="3. O launcher será notificado automaticamente" FontSize="12" Foreground="#E2E8F0" />
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+                <Button Name="CancelButton" Content="Cancelar" Click="OnCancelClicked"
+                        Background="#334155" Foreground="#E2E8F0" Padding="16, 8" />
+            </StackPanel>
+        </StackPanel>
+    </Border>
+</Window>

@@ -18,6 +18,9 @@ public sealed record ModpackManifest
 
     [JsonPropertyName("files")]
     public required List<ManifestFileEntry> Files { get; init; }
+
+    [JsonPropertyName("signature")]
+    public string? Signature { get; init; } // Assinatura ED25519 base64 (opcional por enquanto)
 }
 
 public sealed record ModLoaderInfo

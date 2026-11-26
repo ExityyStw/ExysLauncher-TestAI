@@ -1,3 +1,4 @@
+using System.Runtime.Versioning;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -7,6 +8,7 @@ namespace LauncherMine.Core.Security;
 /// Armazenamento seguro para Windows utilizando DPAPI (Data Protection API).
 /// As chaves criptográficas são atreladas ao usuário autenticado atual no Windows.
 /// </summary>
+[SupportedOSPlatform("windows")]
 public sealed class WindowsSecureVault : ISecureVault
 {
     private readonly string _storageDirectory;
@@ -19,6 +21,7 @@ public sealed class WindowsSecureVault : ISecureVault
         Directory.CreateDirectory(_storageDirectory);
     }
 
+    [SupportedOSPlatform("windows")]
     public async Task StoreSecretAsync(string key, string secret)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(key);
@@ -34,6 +37,7 @@ public sealed class WindowsSecureVault : ISecureVault
         await File.WriteAllBytesAsync(filePath, encryptedBytes);
     }
 
+    [SupportedOSPlatform("windows")]
     public async Task<string?> RetrieveSecretAsync(string key)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(key);
@@ -59,6 +63,7 @@ public sealed class WindowsSecureVault : ISecureVault
         }
     }
 
+    [SupportedOSPlatform("windows")]
     public Task DeleteSecretAsync(string key)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(key);

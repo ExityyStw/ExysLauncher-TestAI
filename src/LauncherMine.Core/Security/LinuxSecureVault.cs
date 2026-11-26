@@ -1,13 +1,13 @@
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace LauncherMine.Core.Security;
 
 /// <summary>
 /// Armazenamento seguro para sistemas Linux / Unix.
-/// Implementa persistência isolada com permissões de arquivo estritas (POSIX 0600: somente leitura/escrita do proprietário),
-/// associado a uma chave derivada por máquina e usuário com criptografia AES-GCM 256 bits.
+/// Usa AES-GCM 256-bit com permissões POSIX 0600 para proteção de tokens.
 /// </summary>
 public sealed class LinuxSecureVault : ISecureVault
 {
@@ -33,19 +33,17 @@ public sealed class LinuxSecureVault : ISecureVault
 
         byte[] plainBytes = Encoding.UTF8.GetBytes(secret);
 
-        // AES-256-GCM com Nonce e Tag de Autenticação
-        byte[] nonce = new byte[AesGcm.NonceByteSizes.MaxSize]; // 12 bytes
+        byte[] nonce = new byte[AesGcm.NonceByteSizes.MaxSize];
         RandomNumberGenerator.Fill(nonce);
 
         byte[] ciphertext = new byte[plainBytes.Length];
-        byte[] tag = new byte[AesGcm.TagByteSizes.MaxSize]; // 16 bytes
+        byte[] tag = new byte[AesGcm.TagByteSizes.MaxSize];
 
         using (var aesGcm = new AesGcm(_masterKey, AesGcm.TagByteSizes.MaxSize))
         {
             aesGcm.Encrypt(nonce, plainBytes, ciphertext, tag);
         }
 
-        // Formato binário: [Nonce (12)] + [Tag (16)] + [Ciphertext (N)]
         byte[] combined = new byte[nonce.Length + tag.Length + ciphertext.Length];
         Buffer.BlockCopy(nonce, 0, combined, 0, nonce.Length);
         Buffer.BlockCopy(tag, 0, combined, nonce.Length, tag.Length);
@@ -53,8 +51,6 @@ public sealed class LinuxSecureVault : ISecureVault
 
         string filePath = GetSecretFilePath(key);
         await File.WriteAllBytesAsync(filePath, combined);
-
-        // Define permissões estritas 0600 (apenas o próprio usuário tem permissão)
         SetUnixFilePermissions(filePath, UnixFileMode.UserRead | UnixFileMode.UserWrite);
     }
 
@@ -123,7 +119,6 @@ public sealed class LinuxSecureVault : ISecureVault
 
     private static byte[] DeriveMachineUserKey()
     {
-        // Obtém entropia estável de identificação de máquina do Linux (/etc/machine-id)
         string machineId = string.Empty;
         if (File.Exists("/etc/machine-id"))
         {
@@ -136,7 +131,6 @@ public sealed class LinuxSecureVault : ISecureVault
 
         string user = Environment.UserName;
         string combinedSeed = $"LauncherMine:{machineId}:{user}:Salt_9981";
-
         return SHA256.HashData(Encoding.UTF8.GetBytes(combinedSeed));
     }
 

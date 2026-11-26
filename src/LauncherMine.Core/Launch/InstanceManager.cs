@@ -5,7 +5,7 @@ using LauncherMine.Core.Security;
 namespace LauncherMine.Core.Launch;
 
 /// <summary>
-/// Gerenciador de instâncias estritamente isoladas inspirado na arquitetura do Prism Launcher.
+/// Gerenciador de instâncias estritamente isoladas.
 /// Cada instância reside em seu próprio diretório autônomo, isolando mods, saves, configs e assets.
 /// </summary>
 public sealed class InstanceManager
@@ -85,7 +85,7 @@ public sealed class InstanceManager
 
         Directory.CreateDirectory(instanceDir);
 
-        // Cria a subestrutura de isolamento Prism-like
+        // Cria a subestrutura de isolamento
         Directory.CreateDirectory(Path.Combine(instanceDir, "minecraft"));
         Directory.CreateDirectory(Path.Combine(instanceDir, "minecraft", "mods"));
         Directory.CreateDirectory(Path.Combine(instanceDir, "minecraft", "config"));

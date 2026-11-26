@@ -47,19 +47,23 @@ public sealed partial class MinecraftLauncher
             ?? throw new InvalidOperationException("Nenhuma conta selecionada para inicializar o jogo.");
 
         progress?.Report(new LaunchProgress("Autenticando sessão...", 5));
-        string accessToken = await _accountManager.GetValidAccessTokenAsync(account, cancellationToken);
+        string accessToken = account.Type == AccountType.Offline
+            ? "OFFLINE"
+            : await _accountManager.GetValidAccessTokenAsync(account, cancellationToken);
 
         // 1. Resolução do Java Seguro
         progress?.Report(new LaunchProgress("Detectando runtime do Java...", 12));
         string javaBinary = ResolveJavaBinary(instance);
 
-        // 2. Isolamento de Diretórios (Prism-like)
+        // 2. Isolamento de Diretórios
         string mcDir = _instanceManager.GetInstanceMinecraftDirectory(instance.Id);
         var minecraftPath = new MinecraftPath(mcDir);
         var launcher = new CmlLib.Core.MinecraftLauncher(minecraftPath);
 
-        // 3. Resolução de Sessão
-        var session = new MSession(account.Username, accessToken, account.Id);
+        // 3. Resolução de Sessão (contas offline usam sessão offline nativa do CmlLib)
+        var session = account.Type == AccountType.Offline
+            ? MSession.CreateOfflineSession(account.Username)
+            : new MSession(account.Username, accessToken, account.Id);
 
         // 4. Montagem das Opções de Inicialização
         var launchOptions = new MLaunchOption
@@ -124,7 +128,7 @@ public sealed partial class MinecraftLauncher
 
         instance.LastPlayedDate = DateTime.UtcNow;
 
-        // Eficiência Extrema (Horizon-like): Fecha o launcher se configurado
+        // Eficiência Extrema: Fecha o launcher se configurado
         if (instance.CloseLauncherOnLaunch)
         {
             progress?.Report(new LaunchProgress("Jogo iniciado! Liberando recursos de memória...", 100));

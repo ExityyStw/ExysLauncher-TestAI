@@ -5,7 +5,7 @@ using LauncherMine.Core.Security;
 namespace LauncherMine.Core.Auth;
 
 /// <summary>
-/// Gerenciador central de contas no estilo SKlauncher.
+/// Gerenciador central de contas.
 /// Mantém perfis e comuta a conta ativa de forma transparente para a UI.
 /// </summary>
 public sealed class AccountManager

@@ -119,17 +119,32 @@ public sealed class MicrosoftAuthService : IDisposable
             ["scope"] = Scope
         };
 
+        // Renovação no mesmo endpoint v2.0 do device flow (login.live.com é legado e incompatível)
         using var response = await _httpClient.PostAsync(
-            "https://login.live.com/oauth20_token.srf",
+            "https://login.microsoftonline.com/consumers/oauth2/v2.0/token",
             new FormUrlEncodedContent(parameters),
             cancellationToken);
 
-        response.EnsureSuccessStatusCode();
-        using var doc = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync(cancellationToken), cancellationToken: cancellationToken);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken);
+        using var doc = JsonDocument.Parse(json);
         var root = doc.RootElement;
 
+        if (root.TryGetProperty("error", out var errorProp))
+        {
+            string errorCode = errorProp.GetString() ?? "unknown";
+            string errorDesc = root.TryGetProperty("error_description", out var descProp)
+                ? descProp.GetString() ?? string.Empty
+                : string.Empty;
+            throw new InvalidOperationException($"Falha ao renovar token Microsoft: {errorCode} — {errorDesc}");
+        }
+
+        response.EnsureSuccessStatusCode();
+
         string newAccessToken = root.GetProperty("access_token").GetString()!;
-        string newRefreshToken = root.GetProperty("refresh_token").GetString()!;
+        // O Microsoft pode ou não rotacionar o refresh token; preserva o antigo se ausente
+        string newRefreshToken = root.TryGetProperty("refresh_token", out var rtProp) && rtProp.GetString() is { Length: > 0 } rotated
+            ? rotated
+            : refreshToken;
 
         // Atualiza o refresh token criptografado
         await _secureVault.StoreSecretAsync(profile.VaultKey, newRefreshToken);

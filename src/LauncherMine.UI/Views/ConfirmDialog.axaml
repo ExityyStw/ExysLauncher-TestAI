@@ -1,0 +1,27 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="LauncherMine.UI.Views.ConfirmDialog"
+        Title="Confirmar"
+        Width="400" Height="190"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False"
+        Background="{DynamicResource WindowBgBrush}">
+
+    <Border Padding="22">
+        <StackPanel Spacing="18">
+            <TextBlock Name="MessageText" TextWrapping="Wrap" FontSize="13"
+                       Foreground="{DynamicResource TextPrimaryBrush}" />
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
+                <Button Name="NoButton" Content="Cancelar" Width="100" Height="36"
+                        Background="{DynamicResource SecondaryBtnBgBrush}"
+                        BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1"
+                        Foreground="{DynamicResource SecondaryBtnFgBrush}" Click="OnNoClicked" />
+                <Button Name="YesButton" Content="Confirmar" Width="110" Height="36"
+                        Background="{DynamicResource DangerBgBrush}"
+                        BorderBrush="{DynamicResource DangerFgBrush}" BorderThickness="1"
+                        Foreground="{DynamicResource DangerFgBrush}" FontWeight="Bold" Click="OnYesClicked" />
+            </StackPanel>
+        </StackPanel>
+    </Border>
+</Window>

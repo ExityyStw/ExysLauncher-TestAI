@@ -15,7 +15,7 @@
                 </Border>
                 <StackPanel VerticalAlignment="Center">
                     <TextBlock Text="Nova Instância Isolada" FontSize="18" FontWeight="ExtraBold" Foreground="{DynamicResource TextPrimaryBrush}" />
-                    <TextBlock Text="Criação de ambiente isolado estilo Prism Launcher" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" />
+                    <TextBlock Text="Criação de ambiente isolado" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" />
                 </StackPanel>
             </StackPanel>
 

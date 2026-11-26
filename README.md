@@ -4,19 +4,14 @@
 ![.NET](https://img.shields.io/badge/.NET-8.0-512BD4)
 ![Interface](https://img.shields.io/badge/interface-Avalonia-purple)
 
-Um launcher de Minecraft moderno, ultra-leve, seguro e estritamente **multiplataforma (Windows e Linux)**, projetado especificamente para modpacks modernos e pesados (ex: **NeoForge 1.21.1 com 300+ mods**), além de instâncias **Fabric**, **Forge** e **Vanilla**.
-
-Inspirado em:
-- **Prism Launcher**: Isolamento estrito de instâncias e diretórios (cada instância possui sua pasta própria de `.minecraft`, `mods`, `config` e `saves`).
-- **SKlauncher**: Interface escura minimalista com alternador rápido de contas Microsoft oficiais e offline.
-- **Horizon Launcher (Rust)**: Eficiência de recursos e opção de encerramento automático pós-inicialização do Java (liberando 100% da memória RAM para o jogo).
+Um launcher de Minecraft moderno, ultra-leve, seguro e estritamente **multiplataforma (Windows e Linux)**, projetado especificamente para modpacks modernos e pesados, além de instâncias **Fabric**, **Forge**, **NeoForge** e **Vanilla**.
 
 ## — Funcionalidades. 🖥️
 
 1. **Catálogo Completo e Instalação Automática (Vanilla, NeoForge, Fabric & Forge):**
    - Busca dinâmica online de todas as versões Vanilla da Mojang e das versões de **NeoForge**, **Fabric** e **Forge** compatíveis com a versão escolhida.
    - Instalação automática do Mod Loader escolhido antes da inicialização do jogo.
-2. **Gerenciador de Instâncias Isoladas (Prism-like):**
+2. **Gerenciador de Instâncias Isoladas:**
    - Crie, selecione, abra a pasta dedicada ou exclua instâncias diretamente na aba **Instâncias**.
 3. **Detecção e Validação de Memória RAM:**
    - Leitura nativa da RAM física instalada (`GlobalMemoryStatusEx` no Windows / `/proc/meminfo` no Linux), indicando se o computador atende aos **16 GB recomendados** para modpacks pesados e limitando o slider ao máximo seguro para não travar o sistema.
@@ -24,7 +19,7 @@ Inspirado em:
    - Importação direta de pacotes exportados do **CurseForge** e **Modrinth**.
    - Extração segura de pastas de `overrides` (`mods`, `config`, `scripts`, `kubejs`, `resourcepacks`) para instâncias isoladas.
 5. **Perfis Profissionais de Garbage Collection (Java 21):**
-   - **G1GC Ultra-Otimizado**: Configurado para eliminar micro-travamentos (*stuttering*) e picos de congelamento em pacotes com 300+ mods.
+   - **G1GC Ultra-Otimizado**: Configurado para eliminar micro-travamentos (*stuttering*) e picos de congelamento em pacotes pesados.
    - **Generational ZGC (Java 21+)** & **Shenandoah GC**: Opções de baixa latência para processadores modernos.
 
 ## — Pilares de Segurança da Informação. 🛡️

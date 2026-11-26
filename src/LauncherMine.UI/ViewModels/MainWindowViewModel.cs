@@ -28,6 +28,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     private readonly MinecraftLauncher _minecraftLauncher;
     private readonly ModpackUpdater _updater;
     private readonly ModpackImporter _importer;
+    private readonly ManifestService _manifestService;
     private bool _isSyncingInstance;
     private CancellationTokenSource? _loaderFetchCts;
 
@@ -90,6 +91,15 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private string _customJvmArgsText = string.Empty;
 
+    [ObservableProperty]
+    private string _instanceManifestUrl = string.Empty;
+
+    [ObservableProperty]
+    private string _selectedJavaDisplay = "Detectando Java...";
+
+    [ObservableProperty]
+    private string _customJavaPath = string.Empty;
+
     public ObservableCollection<string> JvmPresetNames { get; } = [];
 
     [ObservableProperty]
@@ -126,6 +136,8 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     public event Action<string>? LogReceived;
     public event Action? RequestOpenConsole;
 
+    public AccountManager AccountManager => _accountManager;
+
     public MainWindowViewModel()
     {
         _secureVault = SecureVaultFactory.Create();
@@ -134,6 +146,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         _minecraftLauncher = new MinecraftLauncher(_instanceManager, _accountManager);
         _updater = new ModpackUpdater(maxConcurrentDownloads: 6);
         _importer = new ModpackImporter(_instanceManager);
+        _manifestService = new ManifestService();
 
         _minecraftLauncher.GameLogReceived += line => LogReceived?.Invoke(line);
 
@@ -343,7 +356,10 @@ public sealed partial class MainWindowViewModel : ViewModelBase
             if (value.ExtraJvmArgs is { Count: > 0 })
                 CustomJvmArgsText = string.Join(" ", value.ExtraJvmArgs);
 
+            InstanceManifestUrl = value.ManifestUrl ?? string.Empty;
+
             UpdateLoaderVersionsListSync(preserveSelected: value.LoaderVersion);
+            RefreshJavaDisplay();
         }
         finally
         {
@@ -369,6 +385,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
             SelectedInstance.GameVersion = SelectedGameVersion;
             SelectedInstance.LoaderType = SelectedLoader;
             SelectedInstance.LoaderVersion = SelectedLoader == "vanilla" ? null : SelectedLoaderVersion;
+            SelectedInstance.ManifestUrl = string.IsNullOrWhiteSpace(InstanceManifestUrl) ? null : InstanceManifestUrl.Trim();
 
             if (!string.IsNullOrWhiteSpace(CustomJvmArgsText))
             {
@@ -377,32 +394,67 @@ public sealed partial class MainWindowViewModel : ViewModelBase
 
             await _instanceManager.SaveInstanceMetadataAsync(SelectedInstance);
 
-            // 1. Sincronização Prévia do Modpack (se configurado)
+            // 1. Sincronização Prévia do Modpack
+            // Prioridade: manifesto remoto HTTPS configurado na instância.
+            // Fallback: sample-manifest.json local apenas para desenvolvimento.
             string mcDir = _instanceManager.GetInstanceMinecraftDirectory(SelectedInstance.Id);
-            string localManifestPath = Path.Combine(Directory.GetCurrentDirectory(), "sample-manifest.json");
+            string? remoteManifestUrl = SelectedInstance.ManifestUrl;
 
-            if (File.Exists(localManifestPath))
+            if (!string.IsNullOrWhiteSpace(remoteManifestUrl))
             {
-                try
+                StatusMessage = "Baixando manifesto remoto do modpack...";
+                var manifest = await _manifestService.FetchManifestAsync(remoteManifestUrl);
+
+                // Alerta de divergência entre manifesto e configuração da instância
+                if (!string.Equals(manifest.GameVersion, SelectedInstance.GameVersion, StringComparison.OrdinalIgnoreCase))
                 {
-                    string manifestJson = await File.ReadAllTextAsync(localManifestPath);
-                    var manifest = JsonSerializer.Deserialize<ModpackManifest>(manifestJson);
-
-                    if (manifest != null && manifest.Files != null && manifest.Files.Count > 0)
-                    {
-                        StatusMessage = "Sincronizando modpack (Validação SHA-256)...";
-                        var syncProgress = new Progress<UpdateProgress>(report =>
-                        {
-                            ProgressValue = report.ProgressPercentage;
-                            StatusMessage = $"[Validação] {report.ProcessedFiles}/{report.TotalFiles} ({report.CurrentFileName})";
-                        });
-
-                        await _updater.SynchronizeAsync(mcDir, manifest, syncProgress);
-                    }
+                    LogReceived?.Invoke($"[AVISO] Manifesto declara Minecraft {manifest.GameVersion}, instância está em {SelectedInstance.GameVersion}.");
                 }
-                catch (Exception syncEx)
+                var manifestLoader = manifest.Loader.Type?.ToLowerInvariant();
+                if (!string.IsNullOrEmpty(manifestLoader) && manifestLoader != "vanilla" &&
+                    !string.Equals(manifestLoader, SelectedInstance.LoaderType, StringComparison.OrdinalIgnoreCase))
                 {
-                    LogReceived?.Invoke($"[AVISO] Falha ao verificar manifesto: {syncEx.Message}");
+                    LogReceived?.Invoke($"[AVISO] Manifesto declara loader '{manifest.Loader.Type}', instância usa '{SelectedInstance.LoaderType}'.");
+                }
+
+                StatusMessage = "Sincronizando modpack (Validação SHA-256)...";
+                var syncProgress = new Progress<UpdateProgress>(report =>
+                {
+                    ProgressValue = report.ProgressPercentage;
+                    StatusMessage = $"[Sync] {report.ProcessedFiles}/{report.TotalFiles} arquivos • {report.CurrentFileName}";
+                });
+
+                // Falha aqui ABORTA o launch: manifesto configurado e inválido = não abrir o jogo
+                await _updater.SynchronizeAsync(mcDir, manifest, syncProgress);
+                StatusMessage = $"Modpack '{manifest.ModpackName}' v{manifest.Version} sincronizado.";
+            }
+            else
+            {
+                // Fallback de desenvolvimento: manifesto local ao lado do executável
+                string localManifestPath = Path.Combine(AppContext.BaseDirectory, "sample-manifest.json");
+                if (File.Exists(localManifestPath))
+                {
+                    try
+                    {
+                        string manifestJson = await File.ReadAllTextAsync(localManifestPath);
+                        var manifest = JsonSerializer.Deserialize<ModpackManifest>(manifestJson);
+
+                        if (manifest != null && manifest.Files != null && manifest.Files.Count > 0)
+                        {
+                            StatusMessage = "Sincronizando modpack local (Validação SHA-256)...";
+                            var syncProgress = new Progress<UpdateProgress>(report =>
+                            {
+                                ProgressValue = report.ProgressPercentage;
+                                StatusMessage = $"[Sync] {report.ProcessedFiles}/{report.TotalFiles} arquivos • {report.CurrentFileName}";
+                            });
+
+                            await _updater.SynchronizeAsync(mcDir, manifest, syncProgress);
+                        }
+                    }
+                    catch (Exception syncEx)
+                    {
+                        LogReceived?.Invoke($"[AVISO] Falha ao verificar manifesto local: {syncEx.Message}");
+                    }
                 }
             }
 
@@ -514,16 +566,36 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     [RelayCommand]
     public async Task AddOfflineAccountAsync(string username)
     {
-        var account = OfflineAuthService.CreateOfflineAccount(username);
-        await _accountManager.AddOrUpdateAccountAsync(account);
+        try
+        {
+            var account = OfflineAuthService.CreateOfflineAccount(username);
+            await _accountManager.AddOrUpdateAccountAsync(account);
+            StatusMessage = $"Conta offline '{account.Username}' adicionada.";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Conta inválida: {ex.Message}";
+            LogReceived?.Invoke($"[ERRO CONTA] {ex.Message}");
+        }
     }
 
     [RelayCommand]
-    public async Task RemoveAccountAsync()
+    private void SelectAccount(AccountProfile? account)
     {
-        if (SelectedAccount != null)
+        if (account != null)
         {
-            await _accountManager.RemoveAccountAsync(SelectedAccount.Id);
+            SelectedAccount = account;
+        }
+    }
+
+    [RelayCommand]
+    public async Task RemoveAccountAsync(AccountProfile? account = null)
+    {
+        var target = account ?? SelectedAccount;
+        if (target != null)
+        {
+            await _accountManager.RemoveAccountAsync(target.Id);
+            StatusMessage = $"Conta '{target.Username}' removida.";
         }
     }
 
@@ -538,6 +610,32 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     {
         if (_isSyncingInstance || string.IsNullOrWhiteSpace(value)) return;
         _ = RefreshLoaderVersionsOnlineAsync(SelectedLoader, value, null);
+        RefreshJavaDisplay();
+    }
+
+    /// <summary>
+    /// Exibe na UI qual runtime Java será usado para a versão de jogo selecionada.
+    /// </summary>
+    private void RefreshJavaDisplay()
+    {
+        try
+        {
+            var available = JavaDetector.FindAvailableJavaInstallations();
+            var recommended = JavaDetector.GetRecommendedJava(SelectedGameVersion, available);
+            if (recommended != null)
+            {
+                string arch = recommended.Is64Bit ? "64-bit" : "32-bit";
+                SelectedJavaDisplay = $"Java {recommended.MajorVersion} • {recommended.Vendor} ({arch})";
+            }
+            else
+            {
+                SelectedJavaDisplay = "Nenhum Java compatível detectado — verifique JAVA_HOME ou PATH";
+            }
+        }
+        catch
+        {
+            SelectedJavaDisplay = "Detecção de Java indisponível";
+        }
     }
 
     private void UpdateLoaderVersionsListSync(string? preserveSelected = null)
