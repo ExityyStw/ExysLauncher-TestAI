@@ -67,11 +67,11 @@
                     <Button Content="Configurações" Background="Transparent" Foreground="#795739" BorderThickness="0" 
                             HorizontalAlignment="Stretch" Padding="8, 4" Click="OnShowSettingsClicked" />
                     <Button Content="Ajuda e comunidade" Background="Transparent" Foreground="#795739" BorderThickness="0" 
-                            HorizontalAlignment="Stretch" Padding="8, 4" />
+                            HorizontalAlignment="Stretch" Padding="8, 4" Click="OnHelpClicked" />
                     
                     <!-- Perfil -->
                     <Button Name="AccountButton" Background="#EBC08D" BorderThickness="0" CornerRadius="6" Padding="8" Margin="0, 6, 0, 0"
-                            HorizontalAlignment="Stretch" Click="OnAccountMenuClicked">
+                            HorizontalAlignment="Stretch" Click="OnAccountMenuClicked" IsVisible="{Binding HasAccounts}">
                         <StackPanel Spacing="2">
                             <TextBlock Text="{Binding SelectedAccount.Username, FallbackValue='Meu aventureiro'}" FontSize="10" FontWeight="Bold" Foreground="#A4512C" />
                             <TextBlock Text="Gerenciar contas" FontSize="8" Foreground="#806043" />
@@ -91,6 +91,8 @@
                             </ContextMenu>
                         </Button.ContextMenu>
                     </Button>
+                    <Button Content="Adicionar conta" Background="Transparent" Foreground="#795739" BorderThickness="0" 
+                            HorizontalAlignment="Stretch" Padding="8, 4" Click="OnAddAccountClicked" IsVisible="{Binding !HasAccounts}" />
 
                     <TextBlock Text="ExysLauncher 0.9.4" FontSize="8" Foreground="#826044" HorizontalAlignment="Center" Margin="0, 6, 0, 0" />
                 </StackPanel>
@@ -108,7 +110,7 @@
                         <TextBlock Text="Seu próximo mundo começa com uma pausa." FontSize="11" Foreground="#825C3E" />
                     </StackPanel>
                     <Border Grid.Column="1" Background="#F4CCA0" CornerRadius="16" Padding="8, 4">
-                        <TextBlock Text="● Tudo pronto" FontSize="9" Foreground="#A0512C" />
+                        <TextBlock Text="{Binding StatusBadgeText}" FontSize="9" Foreground="#A0512C" />
                     </Border>
                 </Grid>
             </Border>
@@ -120,7 +122,7 @@
                     <!-- PÁGINA INÍCIO -->
                     <StackPanel Spacing="16" IsVisible="{Binding IsPlayTab}">
                         <!-- Hero Section -->
-                        <Border Background="#FFDFAE" CornerRadius="12" BorderBrush="#DFB27B" BorderThickness="1" Height="200" Padding="20">
+                        <Border Background="#FFDFAE" CornerRadius="12" BorderBrush="#DFB27B" BorderThickness="1" MinHeight="160" Padding="20">
                             <StackPanel Spacing="10">
                                 <Border Background="#F4C694" CornerRadius="4" Padding="6, 3" HorizontalAlignment="Left">
                                     <TextBlock Text="UM RESPIRO NO OVERWORLD" FontSize="8" FontWeight="Bold" Foreground="#A2502B" />
@@ -240,7 +242,7 @@
                                         <TextBlock Text="Otimização de performance" FontSize="11" Foreground="#795435" />
                                     </StackPanel>
                                     <ComboBox Grid.Column="1" ItemsSource="{Binding JvmPresetNames}" SelectedItem="{Binding SelectedJvmPreset}"
-                                              Width="180" Height="32" Background="#FFF5E4" Foreground="#513321" CornerRadius="4" />
+                                              MinWidth="140" MaxWidth="220" Height="32" Background="#FFF5E4" Foreground="#513321" CornerRadius="4" />
                                 </Grid>
                             </StackPanel>
                         </Border>
@@ -294,7 +296,7 @@
                     <!-- Botão JOGAR -->
                     <Button Grid.Column="3" Command="{Binding PlayCommand}" IsEnabled="{Binding !IsBusy}"
                             Background="#9F4E2B" Foreground="#FFF0DA" 
-                            Width="140" Height="44" FontSize="13" FontWeight="Bold" Padding="16, 8">
+                            MinWidth="120" MinHeight="44" FontSize="13" FontWeight="Bold" Padding="16, 8">
                         <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
                             <TextBlock Text="▶" VerticalAlignment="Center" />
                             <TextBlock Text="Jogar" VerticalAlignment="Center" />

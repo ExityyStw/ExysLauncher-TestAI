@@ -21,3 +21,6 @@ dist/
 *.user
 *.suo
 *.log
+
+# Figma Layout Example (local reference only)
+LayoutExemple/

@@ -123,6 +123,12 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     public ObservableCollection<AccountProfile> Accounts { get; } = [];
 
     [ObservableProperty]
+    private bool _hasAccounts;
+
+    [ObservableProperty]
+    private string _statusBadgeText = "Pronto para jogar";
+
+    [ObservableProperty]
     private AccountProfile? _selectedAccount;
 
     public ObservableCollection<InstanceMetadata> Instances { get; } = [];
@@ -310,6 +316,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
             Accounts.Add(acc);
         }
         SelectedAccount = _accountManager.ActiveAccount;
+        HasAccounts = Accounts.Count > 0;
     }
 
     public void SyncInstancesFromManager()
@@ -323,6 +330,8 @@ public sealed partial class MainWindowViewModel : ViewModelBase
 
     partial void OnSelectedInstanceChanged(InstanceMetadata? value)
     {
+        StatusBadgeText = value != null ? "Em jogo" : "Pronto para jogar";
+
         if (value == null) return;
 
         _isSyncingInstance = true;

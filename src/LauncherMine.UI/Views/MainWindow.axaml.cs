@@ -258,4 +258,14 @@ public partial class MainWindow : Window
             vm.SelectedTabIndex = 2; // Configurações
         }
     }
+
+    private void OnHelpClicked(object? sender, RoutedEventArgs e)
+    {
+        var url = "https://github.com/ExityyStw/ExysLauncher-TestAI";
+        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+        {
+            FileName = url,
+            UseShellExecute = true
+        });
+    }
 }
