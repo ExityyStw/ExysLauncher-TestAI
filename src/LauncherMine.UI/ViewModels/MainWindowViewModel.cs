@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
@@ -126,6 +127,12 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     private bool _hasAccounts;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasNoInstances))]
+    private bool _hasInstances;
+
+    public bool HasNoInstances => !HasInstances;
+
+    [ObservableProperty]
     private string _statusBadgeText = "Pronto para jogar";
 
     [ObservableProperty]
@@ -176,8 +183,8 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         }
         UpdateLoaderVersionsListSync();
 
-        // 4. Carrega preferência de tema (padrão: Tema Papel Claro)
-        LoadThemePreference();
+        // 4. Carrega preferências de UI (tema, RAM, JVM, flags)
+        LoadUiPreferences();
     }
 
     private static string GetUiSettingsPath()
@@ -186,42 +193,101 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         return Path.Combine(appData, "LauncherMine", "ui-settings.json");
     }
 
-    private void LoadThemePreference()
+    private bool _isLoadingPreferences;
+
+    private void LoadUiPreferences()
     {
+        _isLoadingPreferences = true;
         try
         {
             string path = GetUiSettingsPath();
             if (File.Exists(path))
             {
                 using var doc = JsonDocument.Parse(File.ReadAllText(path));
-                if (doc.RootElement.TryGetProperty("isDarkMode", out var prop) && prop.ValueKind == JsonValueKind.True)
+                var root = doc.RootElement;
+
+                if (root.TryGetProperty("isDarkMode", out var darkProp) && darkProp.ValueKind == JsonValueKind.True)
                 {
                     IsDarkMode = true;
+                }
+                if (root.TryGetProperty("ramAllocationMb", out var ramProp) && ramProp.TryGetInt32(out var ram))
+                {
+                    RamAllocationMb = Math.Clamp(ram, MinRamSliderMb, MaxRamSliderMb);
+                }
+                if (root.TryGetProperty("closeLauncherOnLaunch", out var closeProp) && closeProp.ValueKind is JsonValueKind.True or JsonValueKind.False)
+                {
+                    CloseLauncherOnLaunch = closeProp.GetBoolean();
+                }
+                if (root.TryGetProperty("openConsoleOnLaunch", out var consoleProp) && consoleProp.ValueKind is JsonValueKind.True or JsonValueKind.False)
+                {
+                    OpenConsoleOnLaunch = consoleProp.GetBoolean();
+                }
+                if (root.TryGetProperty("selectedJvmPreset", out var presetProp) && presetProp.ValueKind == JsonValueKind.String)
+                {
+                    var preset = presetProp.GetString();
+                    if (!string.IsNullOrWhiteSpace(preset) && JvmPresetNames.Contains(preset))
+                    {
+                        SelectedJvmPreset = preset;
+                    }
+                }
+                if (root.TryGetProperty("customJvmArgsText", out var argsProp) && argsProp.ValueKind == JsonValueKind.String)
+                {
+                    CustomJvmArgsText = argsProp.GetString() ?? string.Empty;
+                }
+                if (root.TryGetProperty("customJavaPath", out var javaProp) && javaProp.ValueKind == JsonValueKind.String)
+                {
+                    CustomJavaPath = javaProp.GetString() ?? string.Empty;
                 }
             }
         }
         catch
         {
-            // Ignora erro de leitura e mantém Tema Papel padrão
+            // Ignora erro de leitura e mantém padrões
+        }
+        finally
+        {
+            _isLoadingPreferences = false;
         }
 
         ApplyTheme(IsDarkMode);
     }
 
-    partial void OnIsDarkModeChanged(bool value)
+    private void SaveUiPreferences()
     {
-        ApplyTheme(value);
+        if (_isLoadingPreferences) return;
         try
         {
             string path = GetUiSettingsPath();
             Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-            File.WriteAllText(path, JsonSerializer.Serialize(new { isDarkMode = value }));
+            var settings = new Dictionary<string, object?>
+            {
+                ["isDarkMode"] = IsDarkMode,
+                ["ramAllocationMb"] = RamAllocationMb,
+                ["closeLauncherOnLaunch"] = CloseLauncherOnLaunch,
+                ["openConsoleOnLaunch"] = OpenConsoleOnLaunch,
+                ["selectedJvmPreset"] = SelectedJvmPreset,
+                ["customJvmArgsText"] = CustomJvmArgsText,
+                ["customJavaPath"] = CustomJavaPath
+            };
+            File.WriteAllText(path, JsonSerializer.Serialize(settings));
         }
         catch
         {
             // Ignora erro de escrita de preferência visual
         }
     }
+
+    partial void OnIsDarkModeChanged(bool value)
+    {
+        ApplyTheme(value);
+        SaveUiPreferences();
+    }
+
+    partial void OnRamAllocationMbChanged(int value) => SaveUiPreferences();
+    partial void OnCloseLauncherOnLaunchChanged(bool value) => SaveUiPreferences();
+    partial void OnOpenConsoleOnLaunchChanged(bool value) => SaveUiPreferences();
+    partial void OnCustomJvmArgsTextChanged(string value) => SaveUiPreferences();
+    partial void OnCustomJavaPathChanged(string value) => SaveUiPreferences();
 
     private static void ApplyTheme(bool dark)
     {
@@ -326,6 +392,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         {
             Instances.Add(inst);
         }
+        HasInstances = Instances.Count > 0;
     }
 
     partial void OnSelectedInstanceChanged(InstanceMetadata? value)
@@ -382,6 +449,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
             SelectedInstance.LoaderType = SelectedLoader;
             SelectedInstance.LoaderVersion = SelectedLoader == "vanilla" ? null : SelectedLoaderVersion;
             SelectedInstance.ManifestUrl = string.IsNullOrWhiteSpace(InstanceManifestUrl) ? null : InstanceManifestUrl.Trim();
+            SelectedInstance.CustomJavaPath = string.IsNullOrWhiteSpace(CustomJavaPath) ? null : CustomJavaPath.Trim();
 
             if (!string.IsNullOrWhiteSpace(CustomJvmArgsText))
             {
@@ -689,6 +757,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     partial void OnSelectedJvmPresetChanged(string value)
     {
         UpdateJvmArgsFromPreset();
+        SaveUiPreferences();
     }
 
     private void UpdateJvmArgsFromPreset()

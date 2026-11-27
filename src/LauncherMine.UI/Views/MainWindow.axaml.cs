@@ -148,9 +148,45 @@ public partial class MainWindow : Window
 
     private void OnAccountMenuClicked(object? sender, RoutedEventArgs e)
     {
+        RefreshAccountsMenu();
         if (sender is Button btn && btn.ContextMenu is ContextMenu menu)
         {
             menu.Open(btn);
+        }
+    }
+
+    private void OnAccountCardContextRequested(object? sender, ContextRequestedEventArgs e)
+    {
+        RefreshAccountsMenu();
+    }
+
+    private void RefreshAccountsMenu()
+    {
+        AccountsMenuItem.Items.Clear();
+
+        if (DataContext is not MainWindowViewModel vm || vm.Accounts.Count == 0)
+        {
+            AccountsMenuItem.Items.Add(new MenuItem { Header = "Nenhuma conta", IsEnabled = false });
+            return;
+        }
+
+        foreach (var account in vm.Accounts)
+        {
+            var captured = account;
+            var isActive = vm.SelectedAccount?.Id == account.Id;
+            var item = new MenuItem
+            {
+                Header = isActive ? $"{account.Username}  ✓" : account.Username
+            };
+            item.Click += (_, _) =>
+            {
+                if (DataContext is MainWindowViewModel vm2)
+                {
+                    vm2.SelectedAccount = captured;
+                    vm2.StatusMessage = $"Conta '{captured.Username}' selecionada.";
+                }
+            };
+            AccountsMenuItem.Items.Add(item);
         }
     }
 
@@ -205,11 +241,13 @@ public partial class MainWindow : Window
     {
         if (DataContext is MainWindowViewModel vm && vm.SelectedAccount != null)
         {
-            var confirm = await new ConfirmDialog("Remover Conta", $"Deseja remover a conta '{vm.SelectedAccount.Username}'?").ShowDialog<bool>(this);
+            var accountId = vm.SelectedAccount.Id;
+            var accountName = vm.SelectedAccount.Username;
+            var confirm = await new ConfirmDialog("Remover Conta", $"Deseja remover a conta '{accountName}'?").ShowDialog<bool>(this);
             if (confirm == true)
             {
-                await vm.AccountManager.RemoveAccountAsync(vm.SelectedAccount.Id);
-                vm.StatusMessage = $"Conta '{vm.SelectedAccount.Username}' removida.";
+                await vm.AccountManager.RemoveAccountAsync(accountId);
+                vm.StatusMessage = $"Conta '{accountName}' removida.";
             }
         }
     }

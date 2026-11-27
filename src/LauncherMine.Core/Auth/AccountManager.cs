@@ -14,6 +14,7 @@ public sealed class AccountManager
     private readonly ISecureVault _secureVault;
     private readonly MicrosoftAuthService _microsoftAuthService;
     private readonly List<AccountProfile> _accounts = [];
+    private readonly SemaphoreSlim _lock = new(1, 1); // Lock para operações assíncronas
 
     public IReadOnlyList<AccountProfile> Accounts => _accounts.AsReadOnly();
     public AccountProfile? ActiveAccount { get; private set; }
@@ -37,89 +38,129 @@ public sealed class AccountManager
 
     public async Task LoadAccountsAsync()
     {
-        _accounts.Clear();
-
-        if (File.Exists(_storageFilePath))
+        await _lock.WaitAsync();
+        try
         {
-            try
+            _accounts.Clear();
+
+            if (File.Exists(_storageFilePath))
             {
-                string json = await File.ReadAllTextAsync(_storageFilePath);
-                var loaded = JsonSerializer.Deserialize<List<AccountProfile>>(json);
-                if (loaded != null)
+                try
                 {
-                    _accounts.AddRange(loaded);
+                    string json = await File.ReadAllTextAsync(_storageFilePath);
+                    var loaded = JsonSerializer.Deserialize<List<AccountProfile>>(json);
+                    if (loaded != null)
+                    {
+                        _accounts.AddRange(loaded);
+                    }
+                }
+                catch
+                {
+                    // Em caso de falha de leitura, preserva lista limpa
                 }
             }
-            catch
-            {
-                // Em caso de falha de leitura, preserva lista limpa
-            }
-        }
 
-        // Seleciona a conta mais recente como ativa
-        ActiveAccount = _accounts.OrderByDescending(a => a.LastUsed).FirstOrDefault();
-        AccountsChanged?.Invoke();
-        ActiveAccountChanged?.Invoke(ActiveAccount);
+            // Seleciona a conta mais recente como ativa
+            ActiveAccount = _accounts.OrderByDescending(a => a.LastUsed).FirstOrDefault();
+            AccountsChanged?.Invoke();
+            ActiveAccountChanged?.Invoke(ActiveAccount);
+        }
+        finally
+        {
+            _lock.Release();
+        }
     }
 
     public async Task SaveAccountsAsync()
     {
-        var options = new JsonSerializerOptions { WriteIndented = true };
-        string json = JsonSerializer.Serialize(_accounts, options);
-        await File.WriteAllTextAsync(_storageFilePath, json);
-        AccountsChanged?.Invoke();
+        await _lock.WaitAsync();
+        try
+        {
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            string json = JsonSerializer.Serialize(_accounts, options);
+            await File.WriteAllTextAsync(_storageFilePath, json);
+            AccountsChanged?.Invoke();
+        }
+        finally
+        {
+            _lock.Release();
+        }
     }
 
     public async Task AddOrUpdateAccountAsync(AccountProfile account)
     {
-        int existingIndex = _accounts.FindIndex(a => a.Id == account.Id);
-        if (existingIndex >= 0)
+        await _lock.WaitAsync();
+        try
         {
-            _accounts[existingIndex] = account;
+            int existingIndex = _accounts.FindIndex(a => a.Id == account.Id);
+            if (existingIndex >= 0)
+            {
+                _accounts[existingIndex] = account;
+            }
+            else
+            {
+                _accounts.Add(account);
+            }
+
+            ActiveAccount = account;
+            account.LastUsed = DateTime.UtcNow;
+
+            await SaveAccountsAsync();
+            ActiveAccountChanged?.Invoke(ActiveAccount);
         }
-        else
+        finally
         {
-            _accounts.Add(account);
+            _lock.Release();
         }
-
-        ActiveAccount = account;
-        account.LastUsed = DateTime.UtcNow;
-
-        await SaveAccountsAsync();
-        ActiveAccountChanged?.Invoke(ActiveAccount);
     }
 
     public void SelectActiveAccount(string accountId)
     {
-        var found = _accounts.FirstOrDefault(a => a.Id == accountId);
-        if (found != null)
+        _lock.Wait();
+        try
         {
-            ActiveAccount = found;
-            found.LastUsed = DateTime.UtcNow;
-            _ = SaveAccountsAsync();
-            ActiveAccountChanged?.Invoke(ActiveAccount);
+            var found = _accounts.FirstOrDefault(a => a.Id == accountId);
+            if (found != null)
+            {
+                ActiveAccount = found;
+                found.LastUsed = DateTime.UtcNow;
+                _ = SaveAccountsAsync();
+                ActiveAccountChanged?.Invoke(ActiveAccount);
+            }
+        }
+        finally
+        {
+            _lock.Release();
         }
     }
 
     public async Task RemoveAccountAsync(string accountId)
     {
-        var account = _accounts.FirstOrDefault(a => a.Id == accountId);
-        if (account == null) return;
-
-        if (!string.IsNullOrEmpty(account.VaultKey))
+        await _lock.WaitAsync();
+        try
         {
-            await _secureVault.DeleteSecretAsync(account.VaultKey);
+            var account = _accounts.FirstOrDefault(a => a.Id == accountId);
+            if (account == null) return;
+
+            if (!string.IsNullOrEmpty(account.VaultKey))
+            {
+                await _secureVault.DeleteSecretAsync(account.VaultKey);
+            }
+
+            _accounts.Remove(account);
+
+            if (ActiveAccount?.Id == accountId)
+            {
+                ActiveAccount = _accounts.OrderByDescending(a => a.LastUsed).FirstOrDefault();
+                ActiveAccountChanged?.Invoke(ActiveAccount);
+            }
+
+            await SaveAccountsAsync();
         }
-
-        _accounts.Remove(account);
-
-        if (ActiveAccount?.Id == accountId)
+        finally
         {
-            ActiveAccount = _accounts.OrderByDescending(a => a.LastUsed).FirstOrDefault();
-            ActiveAccountChanged?.Invoke(ActiveAccount);
+            _lock.Release();
         }
-
-        await SaveAccountsAsync();
     }
 
     /// <summary>

@@ -69,30 +69,25 @@
                     <Button Content="Ajuda e comunidade" Background="Transparent" Foreground="#795739" BorderThickness="0" 
                             HorizontalAlignment="Stretch" Padding="8, 4" Click="OnHelpClicked" />
                     
-                    <!-- Perfil -->
-                    <Button Name="AccountButton" Background="#EBC08D" BorderThickness="0" CornerRadius="6" Padding="8" Margin="0, 6, 0, 0"
-                            HorizontalAlignment="Stretch" Click="OnAccountMenuClicked" IsVisible="{Binding HasAccounts}">
-                        <StackPanel Spacing="2">
-                            <TextBlock Text="{Binding SelectedAccount.Username, FallbackValue='Meu aventureiro'}" FontSize="10" FontWeight="Bold" Foreground="#A4512C" />
-                            <TextBlock Text="Gerenciar contas" FontSize="8" Foreground="#806043" />
-                        </StackPanel>
+                    <!-- Perfil / Contas -->
+                    <Button x:Name="AccountCardButton" Background="#EBC08D" CornerRadius="6" Padding="10, 8" Margin="0, 6, 0, 0"
+                            BorderThickness="0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+                            Click="OnAccountMenuClicked" ContextRequested="OnAccountCardContextRequested" Cursor="Hand">
                         <Button.ContextMenu>
-                            <ContextMenu Name="AccountContextMenu">
+                            <ContextMenu>
                                 <MenuItem Header="Adicionar conta Offline" Click="OnAddAccountClicked" />
                                 <MenuItem Header="Login Microsoft" Click="OnLoginMicrosoftClicked" />
                                 <Separator />
-                                <ItemsControl ItemsSource="{Binding Accounts}">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <MenuItem Header="{Binding Username}" Click="OnRemoveAccountClicked" />
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
+                                <MenuItem x:Name="AccountsMenuItem" Header="Contas" />
+                                <Separator />
+                                <MenuItem Header="Remover conta selecionada" Click="OnRemoveAccountClicked" IsEnabled="{Binding HasAccounts}" />
                             </ContextMenu>
                         </Button.ContextMenu>
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="Meu aventureiro" FontSize="10" FontWeight="Bold" Foreground="#A4512C" />
+                            <TextBlock Text="{Binding SelectedAccount.Username, TargetNullValue='Nenhuma conta', FallbackValue='Nenhuma conta'}" FontSize="8" Foreground="#806043" />
+                        </StackPanel>
                     </Button>
-                    <Button Content="Adicionar conta" Background="Transparent" Foreground="#795739" BorderThickness="0" 
-                            HorizontalAlignment="Stretch" Padding="8, 4" Click="OnAddAccountClicked" IsVisible="{Binding !HasAccounts}" />
 
                     <TextBlock Text="ExysLauncher 0.9.4" FontSize="8" Foreground="#826044" HorizontalAlignment="Center" Margin="0, 6, 0, 0" />
                 </StackPanel>
@@ -166,6 +161,16 @@
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
+
+                            <!-- Estado vazio: nenhuma instância -->
+                            <Border IsVisible="{Binding HasNoInstances}" Background="#FFF7E8" BorderBrush="#DFB17F" BorderThickness="1" CornerRadius="10" Padding="24" Margin="0, 0, 0, 8">
+                                <StackPanel Spacing="8" HorizontalAlignment="Center">
+                                    <TextBlock Text="Nenhuma instância ainda" FontSize="14" FontWeight="SemiBold" Foreground="#513321" HorizontalAlignment="Center" />
+                                    <TextBlock Text="Crie sua primeira instância para começar a jogar." FontSize="11" Foreground="#805739" HorizontalAlignment="Center" />
+                                    <Button Content="+ Criar primeira instância" Background="#9F4E2B" Foreground="White" BorderThickness="0" CornerRadius="6"
+                                            Padding="14, 7" HorizontalAlignment="Center" Margin="0, 4, 0, 0" Click="OnCreateInstanceClicked" />
+                                </StackPanel>
+                            </Border>
                         </StackPanel>
                     </StackPanel>
 
@@ -202,6 +207,16 @@
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
+
+                        <!-- Estado vazio: nenhuma instância -->
+                        <Border IsVisible="{Binding HasNoInstances}" Background="#FFF7E8" BorderBrush="#DFB17F" BorderThickness="1" CornerRadius="10" Padding="24" Margin="0, 0, 0, 8">
+                            <StackPanel Spacing="8" HorizontalAlignment="Center">
+                                <TextBlock Text="Nenhuma instância ainda" FontSize="14" FontWeight="SemiBold" Foreground="#513321" HorizontalAlignment="Center" />
+                                <TextBlock Text="Crie sua primeira instância para começar a jogar." FontSize="11" Foreground="#805739" HorizontalAlignment="Center" />
+                                <Button Content="+ Criar primeira instância" Background="#9F4E2B" Foreground="White" BorderThickness="0" CornerRadius="6"
+                                        Padding="14, 7" HorizontalAlignment="Center" Margin="0, 4, 0, 0" Click="OnCreateInstanceClicked" />
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
 
                     <!-- PÁGINA CONFIGURAÇÕES -->
