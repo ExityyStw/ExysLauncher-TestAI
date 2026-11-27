@@ -63,7 +63,7 @@ public sealed partial class MinecraftLauncher
         // 3. Resolução de Sessão (contas offline usam sessão offline nativa do CmlLib)
         var session = account.Type == AccountType.Offline
             ? MSession.CreateOfflineSession(account.Username)
-            : new MSession(account.Username, accessToken, account.Id);
+            : new MSession(account.Username, accessToken, account.Id.Replace("-", ""));
 
         // 4. Montagem das Opções de Inicialização
         var launchOptions = new MLaunchOption

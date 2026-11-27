@@ -5,8 +5,8 @@
         x:Class="LauncherMine.UI.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="Exys Launcher"
-        Width="900" Height="600"
-        MinWidth="700" MinHeight="500"
+        Width="1280" Height="720"
+        MinWidth="900" MinHeight="600"
         WindowStartupLocation="CenterScreen"
         Background="#FFDFAE">
 
@@ -49,8 +49,8 @@
                             HorizontalAlignment="Stretch" Margin="0,1" Padding="8, 4" Click="OnNavHomeClicked" />
                     <Button Name="NavInstances" Content="Meus perfis" Background="Transparent" Foreground="#795739" BorderThickness="0" 
                             HorizontalAlignment="Stretch" Margin="0,1" Padding="8, 4" Click="OnNavInstancesClicked" />
-                    <Button Name="NavSettings" Content="Configurações" Background="Transparent" Foreground="#795739" BorderThickness="0" 
-                            HorizontalAlignment="Stretch" Margin="0,1" Padding="8, 4" Click="OnShowSettingsClicked" />
+                    <Button Name="NavImport" Content="Importar modpack" Background="Transparent" Foreground="#795739" BorderThickness="0" 
+                            HorizontalAlignment="Stretch" Margin="0,1" Padding="8, 4" Click="OnNavImportClicked" />
                 </StackPanel>
 
                 <!-- Card Inspiracional -->
@@ -80,7 +80,7 @@
                                 <Separator />
                                 <MenuItem x:Name="AccountsMenuItem" Header="Contas" />
                                 <Separator />
-                                <MenuItem Header="Remover conta selecionada" Click="OnRemoveAccountClicked" IsEnabled="{Binding HasAccounts}" />
+                                <MenuItem x:Name="RemoveAccountMenuItem" Header="Remover conta selecionada" Click="OnRemoveAccountClicked" />
                             </ContextMenu>
                         </Button.ContextMenu>
                         <StackPanel Spacing="2">
@@ -140,7 +140,7 @@
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
                                         <Border Background="#FFF1D9" BorderBrush="#DFB17F" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0, 0, 0, 8">
-                                            <Grid ColumnDefinitions="*, Auto, Auto">
+                                            <Grid ColumnDefinitions="*, Auto, Auto, Auto">
                                                 <StackPanel Grid.Column="0" Spacing="6">
                                                     <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="Bold" Foreground="#513321" />
                                                     <TextBlock Text="{Binding GameVersion} • {Binding LoaderType}" FontSize="11" Foreground="#805739" />
@@ -153,7 +153,12 @@
                                                 </StackPanel>
                                                 <Button Grid.Column="1" Content="Selecionar" Background="#F3C694" Foreground="#914626" 
                                                         Click="OnSelectInstanceClicked" Margin="0, 0, 6, 0" Padding="10, 5" />
-                                                <Button Grid.Column="2" Content="🗑" Background="#FFEBC7" Foreground="#A3512C" Width="36" Height="32" Padding="0"
+                                                <Button Grid.Column="2" Content="📁" Background="#FFEBC7" Foreground="#8A5A33" Width="36" Height="32" Padding="0"
+                                                        ToolTip.Tip="Abrir pasta da instância"
+                                                        Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenInstanceFolderCommand}"
+                                                        CommandParameter="{Binding}" />
+                                                <Button Grid.Column="3" Content="🗑" Background="#FFEBC7" Foreground="#A3512C" Width="36" Height="32" Padding="0"
+                                                        ToolTip.Tip="Excluir instância"
                                                         Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).DeleteInstanceCommand}"
                                                         CommandParameter="{Binding}" />
                                             </Grid>
@@ -186,7 +191,7 @@
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
                                     <Border Background="#FFF1D9" BorderBrush="#DFB17F" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0, 0, 0, 8">
-                                        <Grid ColumnDefinitions="*, Auto, Auto">
+                                        <Grid ColumnDefinitions="*, Auto, Auto, Auto">
                                             <StackPanel Grid.Column="0" Spacing="6">
                                                 <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="Bold" Foreground="#513321" />
                                                 <TextBlock Text="{Binding GameVersion} • {Binding LoaderType}" FontSize="11" Foreground="#805739" />
@@ -199,7 +204,12 @@
                                             </StackPanel>
                                             <Button Grid.Column="1" Content="Selecionar" Background="#F3C694" Foreground="#914626" 
                                                     Click="OnSelectInstanceClicked" Margin="0, 0, 6, 0" Padding="10, 5" />
-                                            <Button Grid.Column="2" Content="🗑" Background="#FFEBC7" Foreground="#A3512C" Width="36" Height="32" Padding="0"
+                                            <Button Grid.Column="2" Content="📁" Background="#FFEBC7" Foreground="#8A5A33" Width="36" Height="32" Padding="0"
+                                                    ToolTip.Tip="Abrir pasta da instância"
+                                                    Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenInstanceFolderCommand}"
+                                                    CommandParameter="{Binding}" />
+                                            <Button Grid.Column="3" Content="🗑" Background="#FFEBC7" Foreground="#A3512C" Width="36" Height="32" Padding="0"
+                                                    ToolTip.Tip="Excluir instância"
                                                     Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).DeleteInstanceCommand}"
                                                     CommandParameter="{Binding}" />
                                         </Grid>
@@ -275,11 +285,35 @@
                         </Border>
                     </StackPanel>
 
+                    <!-- PÁGINA IMPORTAR MODPACK -->
+                    <StackPanel Spacing="16" IsVisible="{Binding IsImportTab}">
+                        <TextBlock Text="Importar modpack" FontSize="18" FontWeight="Bold" Foreground="#513321" FontFamily="Times New Roman, serif" />
+
+                        <Border Background="#FFF1D9" BorderBrush="#DFB17F" BorderThickness="1" CornerRadius="10" Padding="16">
+                            <StackPanel Spacing="12">
+                                <TextBlock Text="Importar pacote .zip" FontSize="13" FontWeight="SemiBold" Foreground="#513321" />
+                                <TextBlock Text="Selecione um modpack exportado do CurseForge ou Modrinth (.zip). O launcher criará uma nova instância com os arquivos do pacote." FontSize="11" Foreground="#795435" TextWrapping="Wrap" />
+                                <Grid ColumnDefinitions="*, Auto">
+                                    <TextBox Grid.Column="0" Text="{Binding ImportZipPath}" Watermark="Nenhum arquivo selecionado..." IsReadOnly="True"
+                                             Background="#FFF5E4" Foreground="#513321" BorderBrush="#DFB17F" VerticalContentAlignment="Center" Padding="8, 5" />
+                                    <Button Grid.Column="1" Content="Procurar..." Background="#F3C694" Foreground="#914626" Padding="12, 6"
+                                            Margin="8, 0, 0, 0" Click="OnBrowseZipClicked" />
+                                </Grid>
+                                <Button Content="Importar modpack" Background="#9F4E2B" Foreground="White" BorderThickness="0" CornerRadius="6"
+                                        Padding="14, 8" HorizontalAlignment="Left"
+                                        Command="{Binding ImportZipModpackCommand}" CommandParameter="{Binding ImportZipPath}" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
                 </StackPanel>
             </ScrollViewer>
 
             <!-- Footer -->
             <Border Grid.Row="2" Background="#FFF1D9" BorderBrush="#DFB17F" BorderThickness="1,0,0,0" Padding="12, 10">
+                <StackPanel Spacing="6">
+                <ProgressBar Value="{Binding ProgressValue}" IsVisible="{Binding IsProgressVisible}" Height="4" Minimum="0" Maximum="100"
+                             Foreground="#9F4E2B" Background="#F3D0A1" />
                 <Grid ColumnDefinitions="*, Auto, Auto, Auto">
                     
                     <!-- Perfil Selecionado -->
@@ -300,13 +334,13 @@
                     <Button Grid.Column="1" Background="Transparent" BorderBrush="#DFB17F" BorderThickness="0,0,1,0" Padding="12, 0"
                             Click="OnShowSettingsClicked">
                         <StackPanel Spacing="1">
-                            <TextBlock Text="{Binding RamAllocationMb, StringFormat='{}{0} GB'}" FontSize="11" FontWeight="Bold" Foreground="#513321" />
+                            <TextBlock Text="{Binding RamAllocationGbDisplay}" FontSize="11" FontWeight="Bold" Foreground="#513321" />
                             <TextBlock Text="Memória" FontSize="8" Foreground="#805739" />
                         </StackPanel>
                     </Button>
 
                     <!-- Status -->
-                    <TextBlock Grid.Column="2" Text="● Pronto" FontSize="10" Foreground="#AA542D" VerticalAlignment="Center" Margin="12, 0" />
+                    <TextBlock Grid.Column="2" Text="{Binding StatusMessage, StringFormat='● {0}'}" FontSize="10" Foreground="#AA542D" VerticalAlignment="Center" Margin="12, 0" TextTrimming="CharacterEllipsis" />
 
                     <!-- Botão JOGAR -->
                     <Button Grid.Column="3" Command="{Binding PlayCommand}" IsEnabled="{Binding !IsBusy}"
@@ -318,6 +352,7 @@
                         </StackPanel>
                     </Button>
                 </Grid>
+                </StackPanel>
             </Border>
 
         </Grid>

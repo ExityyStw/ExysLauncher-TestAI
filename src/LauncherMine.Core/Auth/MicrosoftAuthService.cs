@@ -10,6 +10,7 @@ public sealed record DeviceCodeResponse(
     [property: JsonPropertyName("user_code")] string UserCode,
     [property: JsonPropertyName("device_code")] string DeviceCode,
     [property: JsonPropertyName("verification_uri")] string VerificationUri,
+    [property: JsonPropertyName("verification_uri_complete")] string? VerificationUriComplete,
     [property: JsonPropertyName("expires_in")] int ExpiresIn,
     [property: JsonPropertyName("interval")] int Interval
 );
@@ -20,9 +21,9 @@ public sealed record DeviceCodeResponse(
 /// </summary>
 public sealed class MicrosoftAuthService : IDisposable
 {
-    // Client ID público Microsoft para serviços Xbox/Minecraft
-    private const string ClientId = "00000000402b5328";
-    private const string Scope = "service::user.auth.xboxlive.com::MBI_SSL";
+    // Client ID público registrado para fluxos Xbox/Minecraft (mesmo usado por launchers OSS como Prism)
+    private const string ClientId = "c36a9fb6-4f2a-41ff-90bd-ae7cc92031eb";
+    private const string Scope = "XboxLive.SignIn offline_access";
 
     private readonly HttpClient _httpClient;
     private readonly ISecureVault _secureVault;
@@ -38,8 +39,7 @@ public sealed class MicrosoftAuthService : IDisposable
         var parameters = new Dictionary<string, string>
         {
             ["client_id"] = ClientId,
-            ["scope"] = Scope,
-            ["response_type"] = "device_code"
+            ["scope"] = Scope
         };
 
         using var response = await _httpClient.PostAsync(
@@ -94,7 +94,10 @@ public sealed class MicrosoftAuthService : IDisposable
             }
 
             string msAccessToken = root.GetProperty("access_token").GetString()!;
-            string msRefreshToken = root.GetProperty("refresh_token").GetString()!;
+            if (!root.TryGetProperty("refresh_token", out var rtProp) || rtProp.GetString() is not { Length: > 0 } msRefreshToken)
+            {
+                throw new InvalidOperationException("A Microsoft não retornou um refresh token. Verifique se o escopo 'offline_access' está habilitado no aplicativo.");
+            }
 
             return await CompleteMinecraftLoginAsync(msAccessToken, msRefreshToken, cancellationToken);
         }
@@ -193,7 +196,7 @@ public sealed class MicrosoftAuthService : IDisposable
         };
 
         using var xstsResponse = await _httpClient.PostAsJsonAsync("https://xsts.auth.xboxlive.com/xsts/authorize", xstsRequest, cancellationToken);
-        xstsResponse.EnsureSuccessStatusCode();
+        await EnsureSuccessWithDetailsAsync(xstsResponse, "Falha na autenticação XSTS", cancellationToken);
         using var xstsDoc = await JsonDocument.ParseAsync(await xstsResponse.Content.ReadAsStreamAsync(cancellationToken), cancellationToken: cancellationToken);
         string xstsToken = xstsDoc.RootElement.GetProperty("Token").GetString()!;
 
@@ -214,7 +217,11 @@ public sealed class MicrosoftAuthService : IDisposable
         profileRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", mcToken);
 
         using var profileResponse = await _httpClient.SendAsync(profileRequest, cancellationToken);
-        profileResponse.EnsureSuccessStatusCode();
+        if (!profileResponse.IsSuccessStatusCode)
+        {
+            throw new InvalidOperationException(
+                "Conta sem perfil Minecraft válido. Certifique-se de que a conta possui Minecraft (ou Game Pass) e já tenha entrado no jogo oficial pelo menos uma vez.");
+        }
         using var profileDoc = await JsonDocument.ParseAsync(await profileResponse.Content.ReadAsStreamAsync(cancellationToken), cancellationToken: cancellationToken);
         
         string rawId = profileDoc.RootElement.GetProperty("id").GetString()!;
@@ -233,6 +240,15 @@ public sealed class MicrosoftAuthService : IDisposable
             CachedAccessToken = mcToken,
             TokenExpiration = DateTime.UtcNow.AddSeconds(expiresIn - 60)
         };
+    }
+
+    private static async Task EnsureSuccessWithDetailsAsync(HttpResponseMessage response, string context, CancellationToken cancellationToken)
+    {
+        if (response.IsSuccessStatusCode) return;
+
+        string body = await response.Content.ReadAsStringAsync(cancellationToken);
+        string detail = body.Length > 0 ? $" — {body[..Math.Min(body.Length, 200)]}" : string.Empty;
+        throw new InvalidOperationException($"{context} (HTTP {(int)response.StatusCode}): {detail}");
     }
 
     public void Dispose()

@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Linq;
 using Avalonia;
@@ -60,30 +61,6 @@ public partial class MainWindow : Window
         }
     }
 
-    private void OnTabJogarClicked(object? sender, RoutedEventArgs e)
-    {
-        if (DataContext is MainWindowViewModel vm)
-            vm.SelectedTabIndex = 0;
-    }
-
-    private void OnTabInstanciasClicked(object? sender, RoutedEventArgs e)
-    {
-        if (DataContext is MainWindowViewModel vm)
-            vm.SelectedTabIndex = 1;
-    }
-
-    private void OnTabJvmClicked(object? sender, RoutedEventArgs e)
-    {
-        if (DataContext is MainWindowViewModel vm)
-            vm.SelectedTabIndex = 2;
-    }
-
-    private void OnTabImportClicked(object? sender, RoutedEventArgs e)
-    {
-        if (DataContext is MainWindowViewModel vm)
-            vm.SelectedTabIndex = 3;
-    }
-
     private async void OnCreateInstanceClicked(object? sender, RoutedEventArgs e)
     {
         if (DataContext is not MainWindowViewModel vm) return;
@@ -130,22 +107,6 @@ public partial class MainWindow : Window
         }
     }
 
-    private async void OnConfirmImportClicked(object? sender, RoutedEventArgs e)
-    {
-        if (DataContext is MainWindowViewModel vm && !string.IsNullOrWhiteSpace(vm.ImportZipPath))
-        {
-            await vm.ImportZipModpackAsync(vm.ImportZipPath);
-        }
-    }
-
-    private void OnAddAccountMenuClicked(object? sender, RoutedEventArgs e)
-    {
-        if (sender is Button btn && btn.ContextMenu is ContextMenu menu)
-        {
-            menu.Open(btn);
-        }
-    }
-
     private void OnAccountMenuClicked(object? sender, RoutedEventArgs e)
     {
         RefreshAccountsMenu();
@@ -163,6 +124,7 @@ public partial class MainWindow : Window
     private void RefreshAccountsMenu()
     {
         AccountsMenuItem.Items.Clear();
+        RemoveAccountMenuItem.IsEnabled = DataContext is MainWindowViewModel { Accounts.Count: > 0 };
 
         if (DataContext is not MainWindowViewModel vm || vm.Accounts.Count == 0)
         {
@@ -172,19 +134,12 @@ public partial class MainWindow : Window
 
         foreach (var account in vm.Accounts)
         {
-            var captured = account;
             var isActive = vm.SelectedAccount?.Id == account.Id;
             var item = new MenuItem
             {
-                Header = isActive ? $"{account.Username}  ✓" : account.Username
-            };
-            item.Click += (_, _) =>
-            {
-                if (DataContext is MainWindowViewModel vm2)
-                {
-                    vm2.SelectedAccount = captured;
-                    vm2.StatusMessage = $"Conta '{captured.Username}' selecionada.";
-                }
+                Header = isActive ? $"{account.Username}  ✓" : account.Username,
+                Command = vm.SelectAccountCommand,
+                CommandParameter = account
             };
             AccountsMenuItem.Items.Add(item);
         }
@@ -192,13 +147,34 @@ public partial class MainWindow : Window
 
     private async void OnLoginMicrosoftClicked(object? sender, RoutedEventArgs e)
     {
-        var dialog = new MicrosoftLoginDialog();
-        var account = await dialog.StartLoginAsync();
+        if (DataContext is not MainWindowViewModel vm) return;
 
-        if (account != null && DataContext is MainWindowViewModel vm)
+        AccountProfile? account;
+        try
+        {
+            var dialog = new MicrosoftLoginDialog();
+            account = await dialog.ShowDialog<AccountProfile?>(this);
+        }
+        catch (Exception ex)
+        {
+            vm.StatusMessage = $"Erro no login Microsoft: {ex.Message}";
+            return;
+        }
+
+        if (account == null)
+        {
+            vm.StatusMessage = "Login Microsoft cancelado ou não concluído.";
+            return;
+        }
+
+        try
         {
             await vm.AccountManager.AddOrUpdateAccountAsync(account);
             vm.StatusMessage = $"Conta Microsoft '{account.Username}' adicionada.";
+        }
+        catch (Exception ex)
+        {
+            vm.StatusMessage = $"Erro ao salvar conta: {ex.Message}";
         }
     }
 
@@ -252,21 +228,6 @@ public partial class MainWindow : Window
         }
     }
 
-    private void OnThemeToggleClicked(object? sender, RoutedEventArgs e)
-    {
-        if (Application.Current is Avalonia.Application app)
-        {
-            var currentTheme = app.RequestedThemeVariant;
-            app.RequestedThemeVariant = currentTheme == ThemeVariant.Light ? ThemeVariant.Dark : ThemeVariant.Light;
-        }
-    }
-
-    private void OnShowInstancesClicked(object? sender, RoutedEventArgs e)
-    {
-        if (DataContext is MainWindowViewModel vm)
-            vm.SelectedTabIndex = 1;
-    }
-
     private void OnShowSettingsClicked(object? sender, RoutedEventArgs e)
     {
         if (DataContext is MainWindowViewModel vm)
@@ -277,7 +238,7 @@ public partial class MainWindow : Window
     {
         if (DataContext is MainWindowViewModel vm)
         {
-            vm.SelectedTabIndex = 0; // Tela Inicial
+            vm.SelectedTabIndex = 0;
         }
     }
 
@@ -285,15 +246,15 @@ public partial class MainWindow : Window
     {
         if (DataContext is MainWindowViewModel vm)
         {
-            vm.SelectedTabIndex = 1; // Meus perfis / Instâncias
+            vm.SelectedTabIndex = 1;
         }
     }
 
-    private void OnNavSettingsClicked(object? sender, RoutedEventArgs e)
+    private void OnNavImportClicked(object? sender, RoutedEventArgs e)
     {
         if (DataContext is MainWindowViewModel vm)
         {
-            vm.SelectedTabIndex = 2; // Configurações
+            vm.SelectedTabIndex = 3;
         }
     }
 

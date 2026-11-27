@@ -6,8 +6,6 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Avalonia;
-using Avalonia.Styling;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -43,13 +41,6 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     public bool IsImportTab => SelectedTabIndex == 3;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ThemeToggleIcon), nameof(ThemeToggleTooltip))]
-    private bool _isDarkMode = false;
-
-    public string ThemeToggleIcon => IsDarkMode ? "☀" : "🌙";
-    public string ThemeToggleTooltip => IsDarkMode ? "Voltar ao Tema Papel (Claro)" : "Ativar Modo Escuro";
-
-    [ObservableProperty]
     private string _statusMessage = "Pronto para jogar";
 
     [ObservableProperty]
@@ -60,6 +51,9 @@ public sealed partial class MainWindowViewModel : ViewModelBase
 
     [ObservableProperty]
     private bool _isBusy = false;
+
+    [ObservableProperty]
+    private bool _isGameRunning = false;
 
     // Detecção Automática da Memória RAM do Computador
     [ObservableProperty]
@@ -72,7 +66,10 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     private int _minRamSliderMb = 1024;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(RamAllocationGbDisplay))]
     private int _ramAllocationMb = 4096;
+
+    public string RamAllocationGbDisplay => $"{RamAllocationMb / 1024.0:0.#} GB";
 
     [ObservableProperty]
     private string _ramInfoText = "Detectando hardware...";
@@ -162,6 +159,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         _manifestService = new ManifestService();
 
         _minecraftLauncher.GameLogReceived += line => LogReceived?.Invoke(line);
+        _minecraftLauncher.GameExited += _ => Dispatcher.UIThread.Post(() => IsGameRunning = false);
 
         _accountManager.AccountsChanged += SyncAccountsFromManager;
         _accountManager.ActiveAccountChanged += acc => SelectedAccount = acc;
@@ -206,10 +204,6 @@ public sealed partial class MainWindowViewModel : ViewModelBase
                 using var doc = JsonDocument.Parse(File.ReadAllText(path));
                 var root = doc.RootElement;
 
-                if (root.TryGetProperty("isDarkMode", out var darkProp) && darkProp.ValueKind == JsonValueKind.True)
-                {
-                    IsDarkMode = true;
-                }
                 if (root.TryGetProperty("ramAllocationMb", out var ramProp) && ramProp.TryGetInt32(out var ram))
                 {
                     RamAllocationMb = Math.Clamp(ram, MinRamSliderMb, MaxRamSliderMb);
@@ -248,8 +242,6 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         {
             _isLoadingPreferences = false;
         }
-
-        ApplyTheme(IsDarkMode);
     }
 
     private void SaveUiPreferences()
@@ -261,7 +253,6 @@ public sealed partial class MainWindowViewModel : ViewModelBase
             Directory.CreateDirectory(Path.GetDirectoryName(path)!);
             var settings = new Dictionary<string, object?>
             {
-                ["isDarkMode"] = IsDarkMode,
                 ["ramAllocationMb"] = RamAllocationMb,
                 ["closeLauncherOnLaunch"] = CloseLauncherOnLaunch,
                 ["openConsoleOnLaunch"] = OpenConsoleOnLaunch,
@@ -277,31 +268,11 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         }
     }
 
-    partial void OnIsDarkModeChanged(bool value)
-    {
-        ApplyTheme(value);
-        SaveUiPreferences();
-    }
-
     partial void OnRamAllocationMbChanged(int value) => SaveUiPreferences();
     partial void OnCloseLauncherOnLaunchChanged(bool value) => SaveUiPreferences();
     partial void OnOpenConsoleOnLaunchChanged(bool value) => SaveUiPreferences();
     partial void OnCustomJvmArgsTextChanged(string value) => SaveUiPreferences();
     partial void OnCustomJavaPathChanged(string value) => SaveUiPreferences();
-
-    private static void ApplyTheme(bool dark)
-    {
-        if (Application.Current is not null)
-        {
-            Application.Current.RequestedThemeVariant = dark ? ThemeVariant.Dark : ThemeVariant.Light;
-        }
-    }
-
-    [RelayCommand]
-    private void ToggleTheme()
-    {
-        IsDarkMode = !IsDarkMode;
-    }
 
     private void DetectSystemRam()
     {
@@ -397,8 +368,6 @@ public sealed partial class MainWindowViewModel : ViewModelBase
 
     partial void OnSelectedInstanceChanged(InstanceMetadata? value)
     {
-        StatusBadgeText = value != null ? "Em jogo" : "Pronto para jogar";
-
         if (value == null) return;
 
         _isSyncingInstance = true;
@@ -435,7 +404,22 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     [RelayCommand]
     public async Task PlayAsync()
     {
-        if (SelectedAccount == null || SelectedInstance == null || IsBusy) return;
+        if (IsGameRunning)
+        {
+            StatusMessage = "O jogo já está em execução.";
+            return;
+        }
+        if (IsBusy) return;
+        if (SelectedAccount == null)
+        {
+            StatusMessage = "Adicione uma conta (Meu aventureiro) para jogar.";
+            return;
+        }
+        if (SelectedInstance == null)
+        {
+            StatusMessage = "Selecione ou crie uma instância para jogar.";
+            return;
+        }
 
         IsBusy = true;
         IsProgressVisible = true;
@@ -536,6 +520,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
             }
 
             await _minecraftLauncher.LaunchAsync(SelectedInstance, launchProgress);
+            IsGameRunning = true;
 
             if (!CloseLauncherOnLaunch)
             {
@@ -627,7 +612,6 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         }
     }
 
-    [RelayCommand]
     public async Task AddOfflineAccountAsync(string username)
     {
         try
@@ -649,17 +633,6 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         if (account != null)
         {
             SelectedAccount = account;
-        }
-    }
-
-    [RelayCommand]
-    public async Task RemoveAccountAsync(AccountProfile? account = null)
-    {
-        var target = account ?? SelectedAccount;
-        if (target != null)
-        {
-            await _accountManager.RemoveAccountAsync(target.Id);
-            StatusMessage = $"Conta '{target.Username}' removida.";
         }
     }
 
@@ -766,6 +739,11 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         {
             CustomJvmArgsText = string.Join(" ", flags);
         }
+    }
+
+    partial void OnIsGameRunningChanged(bool value)
+    {
+        StatusBadgeText = value ? "Em jogo" : "Pronto para jogar";
     }
 
     partial void OnSelectedAccountChanged(AccountProfile? value)

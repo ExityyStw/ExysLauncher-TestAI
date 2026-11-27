@@ -20,15 +20,31 @@ public partial class MicrosoftLoginDialog : Window
     {
         InitializeComponent();
         _authService = new MicrosoftAuthService(SecureVaultFactory.Create());
+        Opened += (_, _) => _ = StartLoginAsync();
     }
 
-    public async Task<AccountProfile?> StartLoginAsync()
+    public async Task StartLoginAsync()
     {
         _cts = new CancellationTokenSource();
         try
         {
             Dispatcher.UIThread.Post(() => StatusText.Text = "Solicitando código à Microsoft...");
             var deviceCode = await _authService.InitiateDeviceCodeLoginAsync(_cts.Token);
+
+            // Abre o navegador automaticamente na página de verificação (com código já preenchido quando disponível)
+            string verifyUrl = deviceCode.VerificationUriComplete ?? deviceCode.VerificationUri;
+            try
+            {
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = verifyUrl,
+                    UseShellExecute = true
+                });
+            }
+            catch
+            {
+                // Navegador indisponível — o usuário pode digitar manualmente
+            }
 
             Dispatcher.UIThread.Post(() =>
             {
@@ -39,18 +55,15 @@ public partial class MicrosoftLoginDialog : Window
             var account = await _authService.PollDeviceCodeResultAsync(deviceCode, _cts.Token);
             _completed = true;
             Close(account);
-            return account;
         }
         catch (OperationCanceledException)
         {
             Close(null);
-            return null;
         }
         catch (System.Exception ex)
         {
+            // Mantém o dialog aberto exibindo o erro — o usuário decide cancelar
             Dispatcher.UIThread.Post(() => StatusText.Text = $"Erro: {ex.Message}");
-            Close(null);
-            return null;
         }
     }
 

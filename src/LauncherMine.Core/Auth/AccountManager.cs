@@ -76,15 +76,21 @@ public sealed class AccountManager
         await _lock.WaitAsync();
         try
         {
-            var options = new JsonSerializerOptions { WriteIndented = true };
-            string json = JsonSerializer.Serialize(_accounts, options);
-            await File.WriteAllTextAsync(_storageFilePath, json);
-            AccountsChanged?.Invoke();
+            await SaveAccountsCoreAsync();
         }
         finally
         {
             _lock.Release();
         }
+    }
+
+    // Núcleo do save SEM lock — chamado por quem já detém _lock
+    private async Task SaveAccountsCoreAsync()
+    {
+        var options = new JsonSerializerOptions { WriteIndented = true };
+        string json = JsonSerializer.Serialize(_accounts, options);
+        await File.WriteAllTextAsync(_storageFilePath, json);
+        AccountsChanged?.Invoke();
     }
 
     public async Task AddOrUpdateAccountAsync(AccountProfile account)
@@ -105,7 +111,7 @@ public sealed class AccountManager
             ActiveAccount = account;
             account.LastUsed = DateTime.UtcNow;
 
-            await SaveAccountsAsync();
+            await SaveAccountsCoreAsync();
             ActiveAccountChanged?.Invoke(ActiveAccount);
         }
         finally
@@ -155,7 +161,7 @@ public sealed class AccountManager
                 ActiveAccountChanged?.Invoke(ActiveAccount);
             }
 
-            await SaveAccountsAsync();
+            await SaveAccountsCoreAsync();
         }
         finally
         {

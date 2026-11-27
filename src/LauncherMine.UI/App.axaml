@@ -45,45 +45,6 @@
                     <SolidColorBrush x:Key="SecondaryBtnFgBrush" Color="#1F2328" />
                 </ResourceDictionary>
 
-                <!-- Modo Escuro (Opcional) -->
-                <ResourceDictionary x:Key="Dark">
-                    <SolidColorBrush x:Key="WindowBgBrush" Color="#0D0E15" />
-                    <SolidColorBrush x:Key="HeaderFooterBgBrush" Color="#131520" />
-                    <SolidColorBrush x:Key="CardBgBrush" Color="#141724" />
-                    <Color x:Key="HeroStartColor">#161928</Color>
-                    <Color x:Key="HeroEndColor">#10121E</Color>
-                    <SolidColorBrush x:Key="SubCardBgBrush" Color="#1E2337" />
-                    <SolidColorBrush x:Key="InputBgBrush" Color="#0B0D14" />
-                    <SolidColorBrush x:Key="InputBorderBrush" Color="#252A3D" />
-                    <SolidColorBrush x:Key="BorderSubtleBrush" Color="#22283E" />
-                    <SolidColorBrush x:Key="BorderStrongBrush" Color="#2E3754" />
-                    <SolidColorBrush x:Key="TextPrimaryBrush" Color="#F8FAFC" />
-                    <SolidColorBrush x:Key="TextSecondaryBrush" Color="#94A3B8" />
-                    <SolidColorBrush x:Key="TextMutedBrush" Color="#64748B" />
-                    <SolidColorBrush x:Key="NavHoverBgBrush" Color="#1A1F30" />
-                    <SolidColorBrush x:Key="NavActiveBgBrush" Color="#1E2337" />
-                    <SolidColorBrush x:Key="NavActiveFgBrush" Color="#38BDF8" />
-                    <SolidColorBrush x:Key="AccentBrush" Color="#10B981" />
-                    <SolidColorBrush x:Key="AccentBorderBrush" Color="#059669" />
-                    <SolidColorBrush x:Key="AccentOnBrush" Color="#0B0D14" />
-                    <SolidColorBrush x:Key="AccentInfoBrush" Color="#38BDF8" />
-                    <SolidColorBrush x:Key="BadgeSuccessBgBrush" Color="#162E25" />
-                    <SolidColorBrush x:Key="BadgeSuccessBorderBrush" Color="#10B981" />
-                    <SolidColorBrush x:Key="BadgeSuccessFgBrush" Color="#34D399" />
-                    <SolidColorBrush x:Key="BadgeInfoBgBrush" Color="#1E2438" />
-                    <SolidColorBrush x:Key="BadgeInfoBorderBrush" Color="#38BDF8" />
-                    <SolidColorBrush x:Key="BadgeInfoFgBrush" Color="#38BDF8" />
-                    <SolidColorBrush x:Key="BadgeWarnBgBrush" Color="#3A2810" />
-                    <SolidColorBrush x:Key="BadgeWarnBorderBrush" Color="#F59E0B" />
-                    <SolidColorBrush x:Key="BadgeWarnFgBrush" Color="#FBBF24" />
-                    <SolidColorBrush x:Key="DangerBgBrush" Color="#3E1A1A" />
-                    <SolidColorBrush x:Key="DangerFgBrush" Color="#F87171" />
-                    <SolidColorBrush x:Key="CodeBgBrush" Color="#0B0D14" />
-                    <SolidColorBrush x:Key="CodeFgBrush" Color="#38BDF8" />
-                    <SolidColorBrush x:Key="ProgressBgBrush" Color="#1E2337" />
-                    <SolidColorBrush x:Key="SecondaryBtnBgBrush" Color="#1E2438" />
-                    <SolidColorBrush x:Key="SecondaryBtnFgBrush" Color="#E2E8F0" />
-                </ResourceDictionary>
             </ResourceDictionary.ThemeDictionaries>
         </ResourceDictionary>
     </Application.Resources>
